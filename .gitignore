@@ -1,0 +1,11 @@
+# 실행 산출물 (재생성 가능하므로 저장소에 넣지 않는다)
+g3_scen_*.pkl
+g3_scenarios.pkl
+g3_step1_maskableppo.zip
+g3_curves.png
+g3_routes.png
+g3_summary.json
+fail_cost_sweep_out.json
+tb/
+wandb/
+__pycache__/
