@@ -32,7 +32,7 @@ def load_cells(path):
         out.append((m.group(1) if m else "", src))
     return out
 
-def run_one(cells, override, seed, steps, every, points=None):
+def run_one(cells, override, seed, steps, every, points=None, ckpts=None):
     ns = {"__name__": "__main__"}
     for tag, src in cells:
         if tag not in BASE_CELLS:
@@ -46,6 +46,7 @@ def run_one(cells, override, seed, steps, every, points=None):
     ns["SEED"] = seed                     # 시나리오 풀 생성 이후에 바꿔 풀은 고정
     ns["cfg"].total_timesteps, ns["cfg"].eval_every = steps, every
     ns["cfg"].eval_points = points
+    ns["cfg"].checkpoint_points = ckpts
     t0 = time.time()
     for tag, src in cells:
         if tag != TRAIN_CELL:
@@ -69,6 +70,8 @@ def main():
                     help="시나리오 풀만 생성하고 끝낸다 (병렬 실행 전 캐시 선점용)")
     ap.add_argument("--steps", type=int, default=300_000)
     ap.add_argument("--eval-every", type=int, default=50_000)
+    ap.add_argument("--ckpt-points", type=int, nargs="*", default=None,
+                    help="이 timesteps 에서 모델을 저장한다 (행동 패턴 비교용)")
     ap.add_argument("--eval-points", type=int, nargs="*", default=None,
                     help="평가할 timesteps 를 직접 지정 (초반 학습 속도 측정용). --set 은 쉼표로 쪼개져 리스트를 못 받는다")
     ap.add_argument("--out", default="fail_cost_sweep_out.json")
@@ -114,7 +117,7 @@ def main():
     for seed in a.seeds:
         for ov in overrides:
             print(f"=== {ov} seed={seed} ===", flush=True)
-            r = run_one(cells, ov, seed, a.steps, a.eval_every, a.eval_points)
+            r = run_one(cells, ov, seed, a.steps, a.eval_every, a.eval_points, a.ckpt_points)
             res.append(r)
             print("    " + json.dumps(r["final"], default=float), flush=True)
             json.dump(res, open(a.out, "w"), default=float, indent=1)
