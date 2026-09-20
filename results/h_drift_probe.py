@@ -9,7 +9,8 @@ softmax(-f/τ) 는 이웃 간 **차이**만 본다. h 전체가 같은 값만큼
   rank         — A* 상태의 이웃 집합 안에서 h 가 매기는 순위가 실제 남은 J 순위와
                  얼마나 맞는지 (Spearman ρ, 정책이 실제로 쓰는 양)
 
-사용: python3 h_drift_probe.py _ab/R_300k_s1 [...]   (각 디렉터리의 checkpoint_step1_final.zip)
+사용: python3 h_drift_probe.py _ab/R_300k_s1 [...]        (디렉터리 → final/best)
+      python3 h_drift_probe.py _ab/A_2000k_lr1e4_s1/checkpoint_step1_500k.zip [...]  (체크포인트 직접)
 """
 import json, os, sys, io, contextlib, re
 
@@ -84,20 +85,28 @@ def probe(ns, model):
 def main():
     from sb3_contrib import MaskablePPO
     out = {}
+    ns = None
     for d in sys.argv[1:]:
-        m = re.match(r"([A-Z]+)_", os.path.basename(d.rstrip("/")))
+        m = re.match(r"([A-Z]+)_", os.path.basename(os.path.dirname(d.rstrip("/")) if d.endswith(".zip")
+                                                    else d.rstrip("/")))
         arm = m.group(1) if m else "R"
-        ns = build_ns(ARMS.get(arm, {}))
-        for name in ("checkpoint_step1_final", "checkpoint_step1_best"):
-            f = os.path.join(d, name + ".zip")
+        if ns is None:                      # 시나리오 풀은 한 번만 만든다 (설정이 같으므로)
+            ns = build_ns(ARMS.get(arm, {}))
+        if d.endswith(".zip"):
+            names, base = [os.path.basename(d)[:-4]], os.path.dirname(d)
+        else:
+            names, base = ["checkpoint_step1_final", "checkpoint_step1_best"], d
+        for name in names:
+            f = os.path.join(base, name + ".zip")
             if not os.path.exists(f):
                 continue
+            d = base
             model = MaskablePPO.load(f, device="cpu", print_system_info=False)
             r = probe(ns, model)
             r["timesteps"] = int(model.num_timesteps)
             r["tau"] = float(model.policy.log_tau.detach().exp())
             out[f"{os.path.basename(d.rstrip('/'))}/{name}"] = r
-            print(f"{os.path.basename(d.rstrip('/')):>18} {name:<24} "
+            print(f"{os.path.basename(d.rstrip('/')):>22} {name:<26} "
                   f"steps {r['timesteps']:>8,} | tau {r['tau']:.4f} | "
                   f"raw MAE {r['h_mae_raw_kg']:>6.2f} kg | debiased {r['h_mae_debiased_kg']:>6.2f} kg | "
                   f"bias {r['h_bias_kg']:>+7.2f} kg | Spearman {r['spearman_mean']:.3f}", flush=True)
