@@ -32,7 +32,7 @@ def load_cells(path):
         out.append((m.group(1) if m else "", src))
     return out
 
-def run_one(cells, override, seed, steps, every):
+def run_one(cells, override, seed, steps, every, points=None):
     ns = {"__name__": "__main__"}
     for tag, src in cells:
         if tag not in BASE_CELLS:
@@ -45,6 +45,7 @@ def run_one(cells, override, seed, steps, every):
                 setattr(ns["cfg"], k, v)
     ns["SEED"] = seed                     # 시나리오 풀 생성 이후에 바꿔 풀은 고정
     ns["cfg"].total_timesteps, ns["cfg"].eval_every = steps, every
+    ns["cfg"].eval_points = points
     t0 = time.time()
     for tag, src in cells:
         if tag != TRAIN_CELL:
@@ -53,6 +54,7 @@ def run_one(cells, override, seed, steps, every):
                   .replace("progress_bar=_progress", "progress_bar=False"))
         exec(compile(src, "<nb:train>", "exec"), ns)
     return dict(override=override, seed=seed, minutes=(time.time() - t0) / 60,
+                pretrain=dict(ns.get("PRETRAIN_INFO", {})),
                 history=ns["HISTORY"],
                 final=ns["evaluate_routing"](ns["model"], ns["EVAL_POOL"]))
 
@@ -67,6 +69,8 @@ def main():
                     help="시나리오 풀만 생성하고 끝낸다 (병렬 실행 전 캐시 선점용)")
     ap.add_argument("--steps", type=int, default=300_000)
     ap.add_argument("--eval-every", type=int, default=50_000)
+    ap.add_argument("--eval-points", type=int, nargs="*", default=None,
+                    help="평가할 timesteps 를 직접 지정 (초반 학습 속도 측정용). --set 은 쉼표로 쪼개져 리스트를 못 받는다")
     ap.add_argument("--out", default="fail_cost_sweep_out.json")
     a = ap.parse_args()
 
@@ -76,10 +80,18 @@ def main():
 
     cells = load_cells(NB)
     def parse(spec):
+        # 주의: bool/null 을 문자열로 두면 "false" 가 truthy 라 조용히 반대 설정이 돈다.
+        WORDS = {"true": True, "false": False, "null": None, "none": None}
         d = {}
         for kv in spec.split(","):
             k, v = kv.split("=", 1)
-            d[k.strip()] = json.loads(v) if v[0] in "0123456789-.[{\"" else v
+            v = v.strip()
+            if v.lower() in WORDS:
+                d[k.strip()] = WORDS[v.lower()]
+            elif v and v[0] in "0123456789-.[{\"":
+                d[k.strip()] = json.loads(v)
+            else:
+                d[k.strip()] = v
         return d
     overrides = [dict(fail_cost_mode="const", fail_cost_const=c) for c in a.consts]
     overrides += [dict(fail_cost_mode=m) for m in a.modes]
@@ -102,7 +114,7 @@ def main():
     for seed in a.seeds:
         for ov in overrides:
             print(f"=== {ov} seed={seed} ===", flush=True)
-            r = run_one(cells, ov, seed, a.steps, a.eval_every)
+            r = run_one(cells, ov, seed, a.steps, a.eval_every, a.eval_points)
             res.append(r)
             print("    " + json.dumps(r["final"], default=float), flush=True)
             json.dump(res, open(a.out, "w"), default=float, indent=1)

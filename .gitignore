@@ -10,3 +10,4 @@ tb/
 wandb/
 __pycache__/
 nz20_*.json
+*.log
