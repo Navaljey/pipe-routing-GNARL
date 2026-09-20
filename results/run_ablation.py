@@ -18,7 +18,7 @@ import argparse, io, json, contextlib, os, sys, time, re
 
 NB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "g3_colab.ipynb")
 # 학습 전까지 실행할 셀 (제목 앞 번호로 식별)
-BASE_CELLS = ["2.", "3.", "4.", "5.", "6.", "7.", "8.", "9.", "10.", "11.", "13.", "14."]
+BASE_CELLS = ["2.", "3.", "4.", "5.", "6.", "7.", "8.", "9.", "10.", "10b.", "11.", "13.", "14."]
 TRAIN_CELL = "15."
 
 def load_cells(path):
