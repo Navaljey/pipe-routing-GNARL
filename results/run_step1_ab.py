@@ -86,7 +86,7 @@ def run_one(arm, seed, steps, eval_every, ckpt_every, extra, quiet_base=True):
             continue
         exec(compile(src.replace("progress_bar=_progress", "progress_bar=False"),
                      "<nb:train>", "exec"), ns)
-    res = dict(arm=arm, seed=seed, steps=steps, override=override,
+    res = dict(arm=arm + os.environ.get("STEP1_AB_TAG", ""), seed=seed, steps=steps, override=override,
                minutes=(time.time() - t0) / 60,
                pretrain=dict(ns.get("PRETRAIN_INFO", {})),
                history=ns["HISTORY"], best=ns["BEST"],
@@ -106,6 +106,9 @@ def main():
     ap.add_argument("--eval-every", type=int, default=50_000)
     ap.add_argument("--ckpt-every", type=int, default=500_000)
     ap.add_argument("--unfreeze-at", type=int, default=None)
+    ap.add_argument("--set", action="append", default=[], metavar="K=V",
+                    help="cfg 임의 덮어쓰기 (예: --set learning_rate=1e-4). 여러 번 줄 수 있다")
+    ap.add_argument("--tag", default=None, help="런 디렉터리 이름에 붙일 꼬리표")
     ap.add_argument("--root", default=os.environ.get("STEP1_AB_ROOT", os.path.join(HERE, "..", "_ab")))
     ap.add_argument("--cache-dir", default=None, help="g3_scen_*.pkl 을 공유할 디렉터리")
     ap.add_argument("--child", action="store_true", help="내부용: 이 프로세스가 런 하나를 실행")
@@ -118,12 +121,19 @@ def main():
     extra = {}
     if a.unfreeze_at is not None:
         extra["gnarl_unfreeze_at"] = a.unfreeze_at
+    for kv in a.set:
+        k, v = kv.split("=", 1)
+        try:
+            v = json.loads(v)
+        except Exception:
+            pass
+        extra[k] = v
 
     if a.child:
         run_one(a.arm, a.seed, a.steps, a.eval_every, a.ckpt_every, extra, quiet_base=False)
         return
 
-    tag = f"{a.arm}_{a.steps//1000}k"
+    tag = f"{a.arm}_{a.steps//1000}k" + (f"_{a.tag}" if a.tag else "")
     for seed in a.seeds:
         d = os.path.join(root, f"{tag}_s{seed}")
         os.makedirs(d, exist_ok=True)
@@ -135,9 +145,14 @@ def main():
                "--eval-every", str(a.eval_every), "--ckpt-every", str(a.ckpt_every)]
         if a.unfreeze_at is not None:
             cmd += ["--unfreeze-at", str(a.unfreeze_at)]
+        for kv in a.set:
+            cmd += ["--set", kv]
         print(f"\n===== {tag} seed={seed} → {d} =====", flush=True)
+        env = dict(os.environ)
+        if a.tag:
+            env["STEP1_AB_TAG"] = "_" + a.tag
         with open(os.path.join(d, "run.log"), "w") as lg:
-            p = subprocess.run(cmd, cwd=d, stdout=lg, stderr=subprocess.STDOUT)
+            p = subprocess.run(cmd, cwd=d, stdout=lg, stderr=subprocess.STDOUT, env=env)
         # 새로 만들어진 캐시는 공유 디렉터리로 올린다
         for f in os.listdir(d):
             if f.startswith("g3_scen_") and not os.path.islink(os.path.join(d, f)):
