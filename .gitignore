@@ -9,3 +9,4 @@ fail_cost_sweep_out.json
 tb/
 wandb/
 __pycache__/
+nz20_*.json
