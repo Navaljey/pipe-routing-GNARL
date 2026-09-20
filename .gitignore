@@ -11,3 +11,8 @@ wandb/
 __pycache__/
 nz20_*.json
 *.log
+step1_baseline_astar.json
+step1_history.json
+step1_autoresearch.json
+step1_*.png
+checkpoint_step1*
