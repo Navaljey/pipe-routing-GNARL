@@ -1,0 +1,695 @@
+{
+ "experiment": "G3-L1 / §16-6 후보4 — Step 1 커리큘럼 1-a (도달만)",
+ "protocol": {
+  "steps_per_run": 300000,
+  "eval_every": 50000,
+  "seeds": [
+   20260919,
+   777001,
+   424242,
+   90210
+  ],
+  "stage_1a": "벤딩 마스크 OFF(k=0), 보상 = 도달 +10 / 스텝 -0.1 (J·PBS 없음)",
+  "scenario_pool": "k=6 으로 생성한 풀을 그대로 사용 — 평가셋 48개가 1c 와 bit 단위로 동일",
+  "gate": "success_rate ≥ 0.80 이면 1-b 로 전이"
+ },
+ "summary": {
+  "stage_1a_k0": {
+   "n_seeds": 4,
+   "random_policy_success": 0.0,
+   "success_mean": 0.2014,
+   "success_sd": 0.0484,
+   "success_per_seed": [
+    0.1319,
+    0.2222,
+    0.2431,
+    0.2083
+   ],
+   "train_success_mean": 0.5858,
+   "train_eval_gap": 0.3844,
+   "deadlock_mean": 0.0,
+   "timeout_mean": 0.7986,
+   "elbows_mean": 18.13
+  },
+  "stage_1c_full_k6": {
+   "n_seeds": 4,
+   "random_policy_success": 0.146,
+   "success_mean": 0.3993,
+   "success_sd": 0.0411,
+   "success_per_seed": [
+    0.3611,
+    0.3681,
+    0.4236,
+    0.4444
+   ],
+   "train_success_mean": 0.4408,
+   "train_eval_gap": 0.0415,
+   "deadlock_mean": 0.3333,
+   "timeout_mean": 0.2674,
+   "elbows_mean": 8.31
+  }
+ },
+ "result": "게이트 미달 (0.201 < 0.80). 게다가 1-c 전체 과제(0.399)보다 낮다 — 더 쉬운 과제가 더 어렵게 학습된다",
+ "runs": [
+  {
+   "cond": "stage_1a_k0",
+   "seed": 20260919,
+   "history": [
+    {
+     "timesteps": 50000,
+     "success_rate": 0.0,
+     "length_ratio": NaN,
+     "j_ratio": NaN,
+     "deadlock_rate": 0.0,
+     "timeout_rate": 1.0,
+     "train_success": 0.06
+    },
+    {
+     "timesteps": 100000,
+     "success_rate": 0.0,
+     "length_ratio": NaN,
+     "j_ratio": NaN,
+     "deadlock_rate": 0.0,
+     "timeout_rate": 1.0,
+     "train_success": 0.09
+    },
+    {
+     "timesteps": 150000,
+     "success_rate": 0.041666666666666664,
+     "length_ratio": 3.9019667484779808,
+     "j_ratio": 7.100088659736633,
+     "deadlock_rate": 0.0,
+     "timeout_rate": 0.9583333333333334,
+     "train_success": 0.06
+    },
+    {
+     "timesteps": 200000,
+     "success_rate": 0.041666666666666664,
+     "length_ratio": 1.4654075528953974,
+     "j_ratio": 3.322067286166867,
+     "deadlock_rate": 0.0,
+     "timeout_rate": 0.9583333333333334,
+     "train_success": 0.26
+    },
+    {
+     "timesteps": 250000,
+     "success_rate": 0.125,
+     "length_ratio": 1.4425910525922376,
+     "j_ratio": 2.991692979651038,
+     "deadlock_rate": 0.0,
+     "timeout_rate": 0.875,
+     "train_success": 0.32
+    },
+    {
+     "timesteps": 300000,
+     "success_rate": 0.08333333333333333,
+     "length_ratio": 1.4164140594335066,
+     "j_ratio": 3.3075658249858817,
+     "deadlock_rate": 0.0,
+     "timeout_rate": 0.9166666666666666,
+     "train_success": 0.5
+    },
+    {
+     "timesteps": 303104,
+     "success_rate": 0.1875,
+     "length_ratio": 2.135431362331514,
+     "j_ratio": 5.186178384145121,
+     "deadlock_rate": 0.0,
+     "timeout_rate": 0.8125,
+     "train_success": 0.51
+    }
+   ],
+   "final": {
+    "success_rate": 0.1875,
+    "deadlock_rate": 0.0,
+    "timeout_rate": 0.8125,
+    "length_ratio": 2.135431362331514,
+    "j_ratio": 5.186178384145121,
+    "bends_agent": 28.11111111111111,
+    "bends_astar": 2.888888888888889,
+    "ep_steps": 167.20833333333334,
+    "n_invalid": 0.0
+   }
+  },
+  {
+   "cond": "stage_1a_k0",
+   "seed": 777001,
+   "history": [
+    {
+     "timesteps": 50000,
+     "success_rate": 0.0,
+     "length_ratio": NaN,
+     "j_ratio": NaN,
+     "deadlock_rate": 0.0,
+     "timeout_rate": 1.0,
+     "train_success": 0.02
+    },
+    {
+     "timesteps": 100000,
+     "success_rate": 0.0,
+     "length_ratio": NaN,
+     "j_ratio": NaN,
+     "deadlock_rate": 0.0,
+     "timeout_rate": 1.0,
+     "train_success": 0.08
+    },
+    {
+     "timesteps": 150000,
+     "success_rate": 0.020833333333333332,
+     "length_ratio": 1.5563607687120475,
+     "j_ratio": 3.040550617557318,
+     "deadlock_rate": 0.0,
+     "timeout_rate": 0.9791666666666666,
+     "train_success": 0.16
+    },
+    {
+     "timesteps": 200000,
+     "success_rate": 0.08333333333333333,
+     "length_ratio": 1.4351185005341247,
+     "j_ratio": 2.9452234589876314,
+     "deadlock_rate": 0.0,
+     "timeout_rate": 0.9166666666666666,
+     "train_success": 0.33
+    },
+    {
+     "timesteps": 250000,
+     "success_rate": 0.10416666666666667,
+     "length_ratio": 1.5954220112752733,
+     "j_ratio": 3.8538102665100014,
+     "deadlock_rate": 0.0,
+     "timeout_rate": 0.8958333333333334,
+     "train_success": 0.46
+    },
+    {
+     "timesteps": 300000,
+     "success_rate": 0.2708333333333333,
+     "length_ratio": 1.366603224775429,
+     "j_ratio": 3.0360662133207885,
+     "deadlock_rate": 0.0,
+     "timeout_rate": 0.7291666666666666,
+     "train_success": 0.67
+    },
+    {
+     "timesteps": 303104,
+     "success_rate": 0.2916666666666667,
+     "length_ratio": 1.097849306779029,
+     "j_ratio": 2.2199643910484204,
+     "deadlock_rate": 0.0,
+     "timeout_rate": 0.7083333333333334,
+     "train_success": 0.67
+    }
+   ],
+   "final": {
+    "success_rate": 0.2916666666666667,
+    "deadlock_rate": 0.0,
+    "timeout_rate": 0.7083333333333334,
+    "length_ratio": 1.097849306779029,
+    "j_ratio": 2.2199643910484204,
+    "bends_agent": 13.071428571428571,
+    "bends_astar": 3.2142857142857144,
+    "ep_steps": 146.375,
+    "n_invalid": 0.0
+   }
+  },
+  {
+   "cond": "stage_1a_k0",
+   "seed": 424242,
+   "history": [
+    {
+     "timesteps": 50000,
+     "success_rate": 0.0,
+     "length_ratio": NaN,
+     "j_ratio": NaN,
+     "deadlock_rate": 0.0,
+     "timeout_rate": 1.0,
+     "train_success": 0.05
+    },
+    {
+     "timesteps": 100000,
+     "success_rate": 0.0,
+     "length_ratio": NaN,
+     "j_ratio": NaN,
+     "deadlock_rate": 0.0,
+     "timeout_rate": 1.0,
+     "train_success": 0.1
+    },
+    {
+     "timesteps": 150000,
+     "success_rate": 0.0625,
+     "length_ratio": 1.2725545649379912,
+     "j_ratio": 2.607488116679489,
+     "deadlock_rate": 0.0,
+     "timeout_rate": 0.9375,
+     "train_success": 0.36
+    },
+    {
+     "timesteps": 200000,
+     "success_rate": 0.08333333333333333,
+     "length_ratio": 1.8997066078242633,
+     "j_ratio": 3.887239473354521,
+     "deadlock_rate": 0.0,
+     "timeout_rate": 0.9166666666666666,
+     "train_success": 0.51
+    },
+    {
+     "timesteps": 250000,
+     "success_rate": 0.25,
+     "length_ratio": 1.4520037487483062,
+     "j_ratio": 3.1370256571541915,
+     "deadlock_rate": 0.0,
+     "timeout_rate": 0.75,
+     "train_success": 0.59
+    },
+    {
+     "timesteps": 300000,
+     "success_rate": 0.22916666666666666,
+     "length_ratio": 1.2717215400722914,
+     "j_ratio": 2.8111528636717478,
+     "deadlock_rate": 0.0,
+     "timeout_rate": 0.7708333333333334,
+     "train_success": 0.65
+    },
+    {
+     "timesteps": 303104,
+     "success_rate": 0.25,
+     "length_ratio": 1.6007130278949235,
+     "j_ratio": 3.3675807527056514,
+     "deadlock_rate": 0.0,
+     "timeout_rate": 0.75,
+     "train_success": 0.71
+    }
+   ],
+   "final": {
+    "success_rate": 0.25,
+    "deadlock_rate": 0.0,
+    "timeout_rate": 0.75,
+    "length_ratio": 1.6007130278949235,
+    "j_ratio": 3.3675807527056514,
+    "bends_agent": 18.666666666666668,
+    "bends_astar": 3.25,
+    "ep_steps": 155.25,
+    "n_invalid": 0.0
+   }
+  },
+  {
+   "cond": "stage_1a_k0",
+   "seed": 90210,
+   "history": [
+    {
+     "timesteps": 50000,
+     "success_rate": 0.041666666666666664,
+     "length_ratio": 1.599374955290548,
+     "j_ratio": 3.472881828155125,
+     "deadlock_rate": 0.0,
+     "timeout_rate": 0.9583333333333334,
+     "train_success": 0.04
+    },
+    {
+     "timesteps": 100000,
+     "success_rate": 0.0625,
+     "length_ratio": 1.9248971927974063,
+     "j_ratio": 4.472284475972455,
+     "deadlock_rate": 0.0,
+     "timeout_rate": 0.9375,
+     "train_success": 0.14
+    },
+    {
+     "timesteps": 150000,
+     "success_rate": 0.041666666666666664,
+     "length_ratio": 1.0762270656445478,
+     "j_ratio": 2.0374845473744787,
+     "deadlock_rate": 0.0,
+     "timeout_rate": 0.9583333333333334,
+     "train_success": 0.19
+    },
+    {
+     "timesteps": 200000,
+     "success_rate": 0.125,
+     "length_ratio": 2.3497214832706788,
+     "j_ratio": 6.079932217428052,
+     "deadlock_rate": 0.0,
+     "timeout_rate": 0.875,
+     "train_success": 0.43
+    },
+    {
+     "timesteps": 250000,
+     "success_rate": 0.16666666666666666,
+     "length_ratio": 0.8807197812793329,
+     "j_ratio": 1.570718043301813,
+     "deadlock_rate": 0.0,
+     "timeout_rate": 0.8333333333333334,
+     "train_success": 0.62
+    },
+    {
+     "timesteps": 300000,
+     "success_rate": 0.20833333333333334,
+     "length_ratio": 1.3025966846263772,
+     "j_ratio": 2.943403557975669,
+     "deadlock_rate": 0.0,
+     "timeout_rate": 0.7916666666666666,
+     "train_success": 0.68
+    },
+    {
+     "timesteps": 303104,
+     "success_rate": 0.25,
+     "length_ratio": 1.2778131908882189,
+     "j_ratio": 2.575342648641598,
+     "deadlock_rate": 0.0,
+     "timeout_rate": 0.75,
+     "train_success": 0.65
+    }
+   ],
+   "final": {
+    "success_rate": 0.25,
+    "deadlock_rate": 0.0,
+    "timeout_rate": 0.75,
+    "length_ratio": 1.2778131908882189,
+    "j_ratio": 2.575342648641598,
+    "bends_agent": 12.666666666666666,
+    "bends_astar": 2.8333333333333335,
+    "ep_steps": 154.0,
+    "n_invalid": 0.0
+   }
+  },
+  {
+   "cond": "stage_1c_full_k6",
+   "seed": 20260919,
+   "history": [
+    {
+     "timesteps": 50000,
+     "success_rate": 0.041666666666666664,
+     "length_ratio": 2.882920548461051,
+     "j_ratio": 2.6891005775258394,
+     "deadlock_rate": 0.5416666666666666,
+     "timeout_rate": 0.4166666666666667,
+     "train_success": 0.08
+    },
+    {
+     "timesteps": 100000,
+     "success_rate": 0.041666666666666664,
+     "length_ratio": 2.326787467008014,
+     "j_ratio": 2.1485039444333482,
+     "deadlock_rate": 0.5208333333333334,
+     "timeout_rate": 0.4375,
+     "train_success": 0.15
+    },
+    {
+     "timesteps": 150000,
+     "success_rate": 0.125,
+     "length_ratio": 4.642729125133209,
+     "j_ratio": 4.564867998991472,
+     "deadlock_rate": 0.5208333333333334,
+     "timeout_rate": 0.3541666666666667,
+     "train_success": 0.18
+    },
+    {
+     "timesteps": 200000,
+     "success_rate": 0.1875,
+     "length_ratio": 3.292852999744593,
+     "j_ratio": 3.2856398100584596,
+     "deadlock_rate": 0.4791666666666667,
+     "timeout_rate": 0.3333333333333333,
+     "train_success": 0.25
+    },
+    {
+     "timesteps": 250000,
+     "success_rate": 0.3125,
+     "length_ratio": 4.251042819733653,
+     "j_ratio": 4.091056777979362,
+     "deadlock_rate": 0.5,
+     "timeout_rate": 0.1875,
+     "train_success": 0.32
+    },
+    {
+     "timesteps": 300000,
+     "success_rate": 0.375,
+     "length_ratio": 2.8359404748067583,
+     "j_ratio": 2.653873469900358,
+     "deadlock_rate": 0.4583333333333333,
+     "timeout_rate": 0.16666666666666666,
+     "train_success": 0.38
+    },
+    {
+     "timesteps": 303104,
+     "success_rate": 0.3958333333333333,
+     "length_ratio": 2.6537952594445393,
+     "j_ratio": 2.6083378584600765,
+     "deadlock_rate": 0.375,
+     "timeout_rate": 0.22916666666666666,
+     "train_success": 0.44
+    }
+   ],
+   "final": {
+    "success_rate": 0.3958333333333333,
+    "deadlock_rate": 0.375,
+    "timeout_rate": 0.22916666666666666,
+    "length_ratio": 2.6537952594445393,
+    "j_ratio": 2.6083378584600765,
+    "bends_agent": 6.631578947368421,
+    "bends_astar": 3.1052631578947367,
+    "ep_steps": 82.60416666666667,
+    "n_invalid": 0.0
+   }
+  },
+  {
+   "cond": "stage_1c_full_k6",
+   "seed": 777001,
+   "history": [
+    {
+     "timesteps": 50000,
+     "success_rate": 0.08333333333333333,
+     "length_ratio": 2.534417311324157,
+     "j_ratio": 2.6148875717914413,
+     "deadlock_rate": 0.4583333333333333,
+     "timeout_rate": 0.4583333333333333,
+     "train_success": 0.16
+    },
+    {
+     "timesteps": 100000,
+     "success_rate": 0.08333333333333333,
+     "length_ratio": 1.759322471513205,
+     "j_ratio": 1.6540170281938917,
+     "deadlock_rate": 0.5,
+     "timeout_rate": 0.4166666666666667,
+     "train_success": 0.23
+    },
+    {
+     "timesteps": 150000,
+     "success_rate": 0.16666666666666666,
+     "length_ratio": 2.7803467512819067,
+     "j_ratio": 2.7895562854394873,
+     "deadlock_rate": 0.3125,
+     "timeout_rate": 0.5208333333333334,
+     "train_success": 0.29
+    },
+    {
+     "timesteps": 200000,
+     "success_rate": 0.25,
+     "length_ratio": 4.422106297004556,
+     "j_ratio": 4.6661883145083065,
+     "deadlock_rate": 0.2916666666666667,
+     "timeout_rate": 0.4583333333333333,
+     "train_success": 0.36
+    },
+    {
+     "timesteps": 250000,
+     "success_rate": 0.25,
+     "length_ratio": 3.852070547580254,
+     "j_ratio": 3.4803557899144866,
+     "deadlock_rate": 0.25,
+     "timeout_rate": 0.5,
+     "train_success": 0.39
+    },
+    {
+     "timesteps": 300000,
+     "success_rate": 0.4375,
+     "length_ratio": 2.791256792517502,
+     "j_ratio": 2.873699529082389,
+     "deadlock_rate": 0.25,
+     "timeout_rate": 0.3125,
+     "train_success": 0.53
+    },
+    {
+     "timesteps": 303104,
+     "success_rate": 0.4166666666666667,
+     "length_ratio": 3.126000855049087,
+     "j_ratio": 3.32555815179895,
+     "deadlock_rate": 0.25,
+     "timeout_rate": 0.3333333333333333,
+     "train_success": 0.51
+    }
+   ],
+   "final": {
+    "success_rate": 0.4166666666666667,
+    "deadlock_rate": 0.25,
+    "timeout_rate": 0.3333333333333333,
+    "length_ratio": 3.126000855049087,
+    "j_ratio": 3.32555815179895,
+    "bends_agent": 9.8,
+    "bends_astar": 2.9,
+    "ep_steps": 107.70833333333333,
+    "n_invalid": 0.0
+   }
+  },
+  {
+   "cond": "stage_1c_full_k6",
+   "seed": 424242,
+   "history": [
+    {
+     "timesteps": 50000,
+     "success_rate": 0.10416666666666667,
+     "length_ratio": 3.7045544194260778,
+     "j_ratio": 3.657599741977767,
+     "deadlock_rate": 0.5208333333333334,
+     "timeout_rate": 0.375,
+     "train_success": 0.11
+    },
+    {
+     "timesteps": 100000,
+     "success_rate": 0.0625,
+     "length_ratio": 2.183175167045501,
+     "j_ratio": 2.1368206677240544,
+     "deadlock_rate": 0.5625,
+     "timeout_rate": 0.375,
+     "train_success": 0.18
+    },
+    {
+     "timesteps": 150000,
+     "success_rate": 0.16666666666666666,
+     "length_ratio": 3.1777445752142204,
+     "j_ratio": 3.266559097306361,
+     "deadlock_rate": 0.4375,
+     "timeout_rate": 0.3958333333333333,
+     "train_success": 0.25
+    },
+    {
+     "timesteps": 200000,
+     "success_rate": 0.22916666666666666,
+     "length_ratio": 2.804957855307627,
+     "j_ratio": 2.9681883368256887,
+     "deadlock_rate": 0.4375,
+     "timeout_rate": 0.3333333333333333,
+     "train_success": 0.33
+    },
+    {
+     "timesteps": 250000,
+     "success_rate": 0.4166666666666667,
+     "length_ratio": 3.573756405667326,
+     "j_ratio": 3.515879349373484,
+     "deadlock_rate": 0.2916666666666667,
+     "timeout_rate": 0.2916666666666667,
+     "train_success": 0.37
+    },
+    {
+     "timesteps": 300000,
+     "success_rate": 0.4166666666666667,
+     "length_ratio": 3.3401208517087184,
+     "j_ratio": 3.4345447424898063,
+     "deadlock_rate": 0.3958333333333333,
+     "timeout_rate": 0.1875,
+     "train_success": 0.44
+    },
+    {
+     "timesteps": 303104,
+     "success_rate": 0.4375,
+     "length_ratio": 2.703235999168794,
+     "j_ratio": 2.7020905185744954,
+     "deadlock_rate": 0.375,
+     "timeout_rate": 0.1875,
+     "train_success": 0.48
+    }
+   ],
+   "final": {
+    "success_rate": 0.4375,
+    "deadlock_rate": 0.375,
+    "timeout_rate": 0.1875,
+    "length_ratio": 2.703235999168794,
+    "j_ratio": 2.7020905185744954,
+    "bends_agent": 7.666666666666667,
+    "bends_astar": 3.0,
+    "ep_steps": 79.72916666666667,
+    "n_invalid": 0.0
+   }
+  },
+  {
+   "cond": "stage_1c_full_k6",
+   "seed": 90210,
+   "history": [
+    {
+     "timesteps": 50000,
+     "success_rate": 0.10416666666666667,
+     "length_ratio": 3.8390198527291717,
+     "j_ratio": 3.768825256896098,
+     "deadlock_rate": 0.5208333333333334,
+     "timeout_rate": 0.375,
+     "train_success": 0.16
+    },
+    {
+     "timesteps": 100000,
+     "success_rate": 0.14583333333333334,
+     "length_ratio": 2.7834686321791664,
+     "j_ratio": 2.6475096508420033,
+     "deadlock_rate": 0.375,
+     "timeout_rate": 0.4791666666666667,
+     "train_success": 0.43
+    },
+    {
+     "timesteps": 150000,
+     "success_rate": 0.3333333333333333,
+     "length_ratio": 3.0677161806894944,
+     "j_ratio": 3.120991519328116,
+     "deadlock_rate": 0.3958333333333333,
+     "timeout_rate": 0.2708333333333333,
+     "train_success": 0.43
+    },
+    {
+     "timesteps": 200000,
+     "success_rate": 0.3541666666666667,
+     "length_ratio": 3.8561667750562405,
+     "j_ratio": 3.7060154090721587,
+     "deadlock_rate": 0.375,
+     "timeout_rate": 0.2708333333333333,
+     "train_success": 0.42
+    },
+    {
+     "timesteps": 250000,
+     "success_rate": 0.3541666666666667,
+     "length_ratio": 3.2995649745679185,
+     "j_ratio": 3.414889233211224,
+     "deadlock_rate": 0.3958333333333333,
+     "timeout_rate": 0.25,
+     "train_success": 0.39
+    },
+    {
+     "timesteps": 300000,
+     "success_rate": 0.4375,
+     "length_ratio": 2.8780346947955344,
+     "j_ratio": 2.946648670548737,
+     "deadlock_rate": 0.2916666666666667,
+     "timeout_rate": 0.2708333333333333,
+     "train_success": 0.52
+    },
+    {
+     "timesteps": 303104,
+     "success_rate": 0.5416666666666666,
+     "length_ratio": 2.965614997374648,
+     "j_ratio": 3.0693430977274696,
+     "deadlock_rate": 0.16666666666666666,
+     "timeout_rate": 0.2916666666666667,
+     "train_success": 0.52
+    }
+   ],
+   "final": {
+    "success_rate": 0.5416666666666666,
+    "deadlock_rate": 0.16666666666666666,
+    "timeout_rate": 0.2916666666666667,
+    "length_ratio": 2.965614997374648,
+    "j_ratio": 3.0693430977274696,
+    "bends_agent": 9.153846153846153,
+    "bends_astar": 3.076923076923077,
+    "ep_steps": 91.79166666666667,
+    "n_invalid": 0.0
+   }
+  }
+ ]
+}

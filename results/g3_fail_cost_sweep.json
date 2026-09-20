@@ -1,0 +1,3078 @@
+{
+ "experiment": "G3 / Step 1 — fail_cost sweep",
+ "protocol": {
+  "steps_per_run": 300000,
+  "eval_every": 50000,
+  "n_runs": 36,
+  "seeds": [
+   13579,
+   90210,
+   424242,
+   606060,
+   777001,
+   20260919
+  ],
+  "scenarios": "192 train / 48 unseen eval (동일 캐시 풀)",
+  "metric": "마지막 3회 평가의 평균",
+  "hardware": "CPU, 8 DummyVecEnv, torch 1 thread",
+  "note": "시나리오 풀은 전 런 동일. 시드는 정책 초기화/롤아웃에만 영향."
+ },
+ "summary": {
+  "const=0.5": {
+   "n_seeds": 6,
+   "success_mean": 0.4005,
+   "success_sd": 0.0585,
+   "success_min": 0.3264,
+   "success_max": 0.5,
+   "length_ratio_mean": 3.213,
+   "length_ratio_sd": 0.627,
+   "deadlock_mean": 0.3484,
+   "timeout_mean": 0.2512
+  },
+  "const=1.0": {
+   "n_seeds": 6,
+   "success_mean": 0.4514,
+   "success_sd": 0.0508,
+   "success_min": 0.3542,
+   "success_max": 0.4931,
+   "length_ratio_mean": 3.016,
+   "length_ratio_sd": 0.227,
+   "deadlock_mean": 0.2917,
+   "timeout_mean": 0.2569
+  },
+  "const=1.5": {
+   "n_seeds": 6,
+   "success_mean": 0.4167,
+   "success_sd": 0.0497,
+   "success_min": 0.3333,
+   "success_max": 0.4861,
+   "length_ratio_mean": 2.886,
+   "length_ratio_sd": 0.248,
+   "deadlock_mean": 0.3507,
+   "timeout_mean": 0.2326
+  },
+  "const=2.0": {
+   "n_seeds": 6,
+   "success_mean": 0.4306,
+   "success_sd": 0.0618,
+   "success_min": 0.3264,
+   "success_max": 0.4931,
+   "length_ratio_mean": 3.076,
+   "length_ratio_sd": 0.405,
+   "deadlock_mean": 0.3356,
+   "timeout_mean": 0.2338
+  },
+  "mode=none": {
+   "n_seeds": 6,
+   "success_mean": 0.4074,
+   "success_sd": 0.0515,
+   "success_min": 0.3542,
+   "success_max": 0.4653,
+   "length_ratio_mean": 3.06,
+   "length_ratio_sd": 0.166,
+   "deadlock_mean": 0.3484,
+   "timeout_mean": 0.2442
+  },
+  "mode=h_star": {
+   "n_seeds": 6,
+   "success_mean": 0.4005,
+   "success_sd": 0.0558,
+   "success_min": 0.3264,
+   "success_max": 0.4583,
+   "length_ratio_mean": 3.079,
+   "length_ratio_sd": 0.131,
+   "deadlock_mean": 0.2986,
+   "timeout_mean": 0.3009
+  }
+ },
+ "runs": [
+  {
+   "config": "const=0.5",
+   "fail_cost_mode": "const",
+   "fail_cost_const": 0.5,
+   "seed": 20260919,
+   "minutes": 2.5,
+   "history": [
+    {
+     "timesteps": 50000,
+     "success_rate": 0.020833333333333332,
+     "length_ratio": 5.476169047029152,
+     "j_ratio": 4.851525807975581,
+     "deadlock_rate": 0.4166666666666667,
+     "timeout_rate": 0.5625,
+     "train_success": 0.15
+    },
+    {
+     "timesteps": 100000,
+     "success_rate": 0.14583333333333334,
+     "length_ratio": 4.692714344538662,
+     "j_ratio": 4.404782343672982,
+     "deadlock_rate": 0.5833333333333334,
+     "timeout_rate": 0.2708333333333333,
+     "train_success": 0.16
+    },
+    {
+     "timesteps": 150000,
+     "success_rate": 0.22916666666666666,
+     "length_ratio": 2.821045589448698,
+     "j_ratio": 2.78759878128096,
+     "deadlock_rate": 0.4583333333333333,
+     "timeout_rate": 0.3125,
+     "train_success": 0.3
+    },
+    {
+     "timesteps": 200000,
+     "success_rate": 0.2916666666666667,
+     "length_ratio": 3.0883358826727254,
+     "j_ratio": 3.153320233504918,
+     "deadlock_rate": 0.3125,
+     "timeout_rate": 0.3958333333333333,
+     "train_success": 0.24
+    },
+    {
+     "timesteps": 250000,
+     "success_rate": 0.3958333333333333,
+     "length_ratio": 2.90772736246074,
+     "j_ratio": 2.9381744575733406,
+     "deadlock_rate": 0.3333333333333333,
+     "timeout_rate": 0.2708333333333333,
+     "train_success": 0.35
+    },
+    {
+     "timesteps": 300000,
+     "success_rate": 0.4375,
+     "length_ratio": 2.888463947307654,
+     "j_ratio": 2.820514590508106,
+     "deadlock_rate": 0.3125,
+     "timeout_rate": 0.25,
+     "train_success": 0.51
+    },
+    {
+     "timesteps": 303104,
+     "success_rate": 0.3125,
+     "length_ratio": 2.295440575350377,
+     "j_ratio": 2.3196509043856866,
+     "deadlock_rate": 0.3958333333333333,
+     "timeout_rate": 0.2916666666666667,
+     "train_success": 0.47
+    }
+   ],
+   "final": {
+    "success_rate": 0.3125,
+    "deadlock_rate": 0.3958333333333333,
+    "timeout_rate": 0.2916666666666667,
+    "length_ratio": 2.295440575350377,
+    "j_ratio": 2.3196509043856866,
+    "bends_agent": 6.0,
+    "bends_astar": 2.8666666666666667,
+    "ep_steps": 90.75,
+    "n_invalid": 0.0
+   }
+  },
+  {
+   "config": "const=1.0",
+   "fail_cost_mode": "const",
+   "fail_cost_const": 1.0,
+   "seed": 20260919,
+   "minutes": 2.49,
+   "history": [
+    {
+     "timesteps": 50000,
+     "success_rate": 0.14583333333333334,
+     "length_ratio": 2.5996250671110945,
+     "j_ratio": 2.6426685021219742,
+     "deadlock_rate": 0.4375,
+     "timeout_rate": 0.4166666666666667,
+     "train_success": 0.21
+    },
+    {
+     "timesteps": 100000,
+     "success_rate": 0.22916666666666666,
+     "length_ratio": 4.150745571183024,
+     "j_ratio": 4.19066976201023,
+     "deadlock_rate": 0.4583333333333333,
+     "timeout_rate": 0.3125,
+     "train_success": 0.23
+    },
+    {
+     "timesteps": 150000,
+     "success_rate": 0.3958333333333333,
+     "length_ratio": 3.267172073473484,
+     "j_ratio": 3.277424851646959,
+     "deadlock_rate": 0.3333333333333333,
+     "timeout_rate": 0.2708333333333333,
+     "train_success": 0.35
+    },
+    {
+     "timesteps": 200000,
+     "success_rate": 0.3958333333333333,
+     "length_ratio": 2.9499603590434726,
+     "j_ratio": 2.9573980963401523,
+     "deadlock_rate": 0.375,
+     "timeout_rate": 0.22916666666666666,
+     "train_success": 0.39
+    },
+    {
+     "timesteps": 250000,
+     "success_rate": 0.4583333333333333,
+     "length_ratio": 3.0572723686361787,
+     "j_ratio": 3.047845931850653,
+     "deadlock_rate": 0.3333333333333333,
+     "timeout_rate": 0.20833333333333334,
+     "train_success": 0.49
+    },
+    {
+     "timesteps": 300000,
+     "success_rate": 0.5208333333333334,
+     "length_ratio": 3.0372442367757775,
+     "j_ratio": 2.981137994032706,
+     "deadlock_rate": 0.2708333333333333,
+     "timeout_rate": 0.20833333333333334,
+     "train_success": 0.49
+    },
+    {
+     "timesteps": 303104,
+     "success_rate": 0.4375,
+     "length_ratio": 3.4425235255696256,
+     "j_ratio": 3.454505667959397,
+     "deadlock_rate": 0.3125,
+     "timeout_rate": 0.25,
+     "train_success": 0.56
+    }
+   ],
+   "final": {
+    "success_rate": 0.4375,
+    "deadlock_rate": 0.3125,
+    "timeout_rate": 0.25,
+    "length_ratio": 3.4425235255696256,
+    "j_ratio": 3.454505667959397,
+    "bends_agent": 9.285714285714286,
+    "bends_astar": 3.0,
+    "ep_steps": 88.875,
+    "n_invalid": 0.0
+   }
+  },
+  {
+   "config": "const=1.5",
+   "fail_cost_mode": "const",
+   "fail_cost_const": 1.5,
+   "seed": 20260919,
+   "minutes": 2.41,
+   "history": [
+    {
+     "timesteps": 50000,
+     "success_rate": 0.041666666666666664,
+     "length_ratio": 8.46585724199213,
+     "j_ratio": 7.689502475879891,
+     "deadlock_rate": 0.625,
+     "timeout_rate": 0.3333333333333333,
+     "train_success": 0.12
+    },
+    {
+     "timesteps": 100000,
+     "success_rate": 0.0625,
+     "length_ratio": 1.8566262967103497,
+     "j_ratio": 1.781276833119873,
+     "deadlock_rate": 0.5208333333333334,
+     "timeout_rate": 0.4166666666666667,
+     "train_success": 0.25
+    },
+    {
+     "timesteps": 150000,
+     "success_rate": 0.2708333333333333,
+     "length_ratio": 3.6858781632438964,
+     "j_ratio": 3.706859357582491,
+     "deadlock_rate": 0.4583333333333333,
+     "timeout_rate": 0.2708333333333333,
+     "train_success": 0.32
+    },
+    {
+     "timesteps": 200000,
+     "success_rate": 0.3333333333333333,
+     "length_ratio": 2.747358386520869,
+     "j_ratio": 2.761142939903217,
+     "deadlock_rate": 0.3541666666666667,
+     "timeout_rate": 0.3125,
+     "train_success": 0.41
+    },
+    {
+     "timesteps": 250000,
+     "success_rate": 0.3958333333333333,
+     "length_ratio": 2.28348725770884,
+     "j_ratio": 2.256774474038215,
+     "deadlock_rate": 0.3125,
+     "timeout_rate": 0.2916666666666667,
+     "train_success": 0.44
+    },
+    {
+     "timesteps": 300000,
+     "success_rate": 0.375,
+     "length_ratio": 2.7805338319885875,
+     "j_ratio": 2.770147204136507,
+     "deadlock_rate": 0.4375,
+     "timeout_rate": 0.1875,
+     "train_success": 0.67
+    },
+    {
+     "timesteps": 303104,
+     "success_rate": 0.4791666666666667,
+     "length_ratio": 2.6811031333087336,
+     "j_ratio": 2.8021974499441944,
+     "deadlock_rate": 0.3125,
+     "timeout_rate": 0.20833333333333334,
+     "train_success": 0.56
+    }
+   ],
+   "final": {
+    "success_rate": 0.4791666666666667,
+    "deadlock_rate": 0.3125,
+    "timeout_rate": 0.20833333333333334,
+    "length_ratio": 2.6811031333087336,
+    "j_ratio": 2.8021974499441944,
+    "bends_agent": 8.782608695652174,
+    "bends_astar": 3.0,
+    "ep_steps": 78.91666666666667,
+    "n_invalid": 0.0
+   }
+  },
+  {
+   "config": "const=2.0",
+   "fail_cost_mode": "const",
+   "fail_cost_const": 2.0,
+   "seed": 20260919,
+   "minutes": 2.43,
+   "history": [
+    {
+     "timesteps": 50000,
+     "success_rate": 0.08333333333333333,
+     "length_ratio": 2.774172075296351,
+     "j_ratio": 2.8048145833076905,
+     "deadlock_rate": 0.4375,
+     "timeout_rate": 0.4791666666666667,
+     "train_success": 0.18
+    },
+    {
+     "timesteps": 100000,
+     "success_rate": 0.16666666666666666,
+     "length_ratio": 4.2515240284052105,
+     "j_ratio": 4.164600363575886,
+     "deadlock_rate": 0.4583333333333333,
+     "timeout_rate": 0.375,
+     "train_success": 0.26
+    },
+    {
+     "timesteps": 150000,
+     "success_rate": 0.1875,
+     "length_ratio": 2.5716979322304536,
+     "j_ratio": 2.5418702531513757,
+     "deadlock_rate": 0.5208333333333334,
+     "timeout_rate": 0.2916666666666667,
+     "train_success": 0.21
+    },
+    {
+     "timesteps": 200000,
+     "success_rate": 0.3125,
+     "length_ratio": 3.4815441471305135,
+     "j_ratio": 3.5898657758970476,
+     "deadlock_rate": 0.4166666666666667,
+     "timeout_rate": 0.2708333333333333,
+     "train_success": 0.28
+    },
+    {
+     "timesteps": 250000,
+     "success_rate": 0.4166666666666667,
+     "length_ratio": 3.3345872755211374,
+     "j_ratio": 3.417372966589956,
+     "deadlock_rate": 0.375,
+     "timeout_rate": 0.20833333333333334,
+     "train_success": 0.37
+    },
+    {
+     "timesteps": 300000,
+     "success_rate": 0.5,
+     "length_ratio": 3.2817709751685675,
+     "j_ratio": 3.3198812835365517,
+     "deadlock_rate": 0.3541666666666667,
+     "timeout_rate": 0.14583333333333334,
+     "train_success": 0.45
+    },
+    {
+     "timesteps": 303104,
+     "success_rate": 0.5,
+     "length_ratio": 3.496989247835143,
+     "j_ratio": 3.6317119562672935,
+     "deadlock_rate": 0.3125,
+     "timeout_rate": 0.1875,
+     "train_success": 0.53
+    }
+   ],
+   "final": {
+    "success_rate": 0.5,
+    "deadlock_rate": 0.3125,
+    "timeout_rate": 0.1875,
+    "length_ratio": 3.496989247835143,
+    "j_ratio": 3.6317119562672935,
+    "bends_agent": 10.0,
+    "bends_astar": 2.8333333333333335,
+    "ep_steps": 83.20833333333333,
+    "n_invalid": 0.0
+   }
+  },
+  {
+   "config": "const=0.5",
+   "fail_cost_mode": "const",
+   "fail_cost_const": 0.5,
+   "seed": 777001,
+   "minutes": 2.42,
+   "history": [
+    {
+     "timesteps": 50000,
+     "success_rate": 0.22916666666666666,
+     "length_ratio": 3.1795776840996797,
+     "j_ratio": 3.2858446862871844,
+     "deadlock_rate": 0.4375,
+     "timeout_rate": 0.3333333333333333,
+     "train_success": 0.29
+    },
+    {
+     "timesteps": 100000,
+     "success_rate": 0.14583333333333334,
+     "length_ratio": 3.639826782071215,
+     "j_ratio": 3.6664860116452016,
+     "deadlock_rate": 0.5625,
+     "timeout_rate": 0.2916666666666667,
+     "train_success": 0.22
+    },
+    {
+     "timesteps": 150000,
+     "success_rate": 0.20833333333333334,
+     "length_ratio": 2.4340136147822333,
+     "j_ratio": 2.574143248082499,
+     "deadlock_rate": 0.5416666666666666,
+     "timeout_rate": 0.25,
+     "train_success": 0.4
+    },
+    {
+     "timesteps": 200000,
+     "success_rate": 0.2708333333333333,
+     "length_ratio": 2.255218844313235,
+     "j_ratio": 2.2486501452331913,
+     "deadlock_rate": 0.4583333333333333,
+     "timeout_rate": 0.2708333333333333,
+     "train_success": 0.38
+    },
+    {
+     "timesteps": 250000,
+     "success_rate": 0.3541666666666667,
+     "length_ratio": 2.450923456247896,
+     "j_ratio": 2.45275491459884,
+     "deadlock_rate": 0.3125,
+     "timeout_rate": 0.3333333333333333,
+     "train_success": 0.43
+    },
+    {
+     "timesteps": 300000,
+     "success_rate": 0.5833333333333334,
+     "length_ratio": 3.0927460293883433,
+     "j_ratio": 3.062644506281276,
+     "deadlock_rate": 0.2916666666666667,
+     "timeout_rate": 0.125,
+     "train_success": 0.45
+    },
+    {
+     "timesteps": 303104,
+     "success_rate": 0.5625,
+     "length_ratio": 3.0401222120391287,
+     "j_ratio": 3.0390639610090573,
+     "deadlock_rate": 0.2916666666666667,
+     "timeout_rate": 0.14583333333333334,
+     "train_success": 0.47
+    }
+   ],
+   "final": {
+    "success_rate": 0.5625,
+    "deadlock_rate": 0.2916666666666667,
+    "timeout_rate": 0.14583333333333334,
+    "length_ratio": 3.0401222120391287,
+    "j_ratio": 3.0390639610090573,
+    "bends_agent": 8.333333333333334,
+    "bends_astar": 3.0,
+    "ep_steps": 74.77083333333333,
+    "n_invalid": 0.0
+   }
+  },
+  {
+   "config": "const=1.0",
+   "fail_cost_mode": "const",
+   "fail_cost_const": 1.0,
+   "seed": 777001,
+   "minutes": 2.38,
+   "history": [
+    {
+     "timesteps": 50000,
+     "success_rate": 0.125,
+     "length_ratio": 4.129297074816451,
+     "j_ratio": 3.6673269853910764,
+     "deadlock_rate": 0.375,
+     "timeout_rate": 0.5,
+     "train_success": 0.16
+    },
+    {
+     "timesteps": 100000,
+     "success_rate": 0.14583333333333334,
+     "length_ratio": 2.618014818574878,
+     "j_ratio": 2.7447320433520224,
+     "deadlock_rate": 0.5,
+     "timeout_rate": 0.3541666666666667,
+     "train_success": 0.3
+    },
+    {
+     "timesteps": 150000,
+     "success_rate": 0.20833333333333334,
+     "length_ratio": 3.236705766150372,
+     "j_ratio": 3.195576170036971,
+     "deadlock_rate": 0.3958333333333333,
+     "timeout_rate": 0.3958333333333333,
+     "train_success": 0.31
+    },
+    {
+     "timesteps": 200000,
+     "success_rate": 0.4375,
+     "length_ratio": 2.847819969746279,
+     "j_ratio": 2.86254869449683,
+     "deadlock_rate": 0.3541666666666667,
+     "timeout_rate": 0.20833333333333334,
+     "train_success": 0.35
+    },
+    {
+     "timesteps": 250000,
+     "success_rate": 0.4375,
+     "length_ratio": 2.9228001592531365,
+     "j_ratio": 2.8262409599063467,
+     "deadlock_rate": 0.2708333333333333,
+     "timeout_rate": 0.2916666666666667,
+     "train_success": 0.45
+    },
+    {
+     "timesteps": 300000,
+     "success_rate": 0.5,
+     "length_ratio": 2.513414516626035,
+     "j_ratio": 2.4694061345604523,
+     "deadlock_rate": 0.16666666666666666,
+     "timeout_rate": 0.3333333333333333,
+     "train_success": 0.49
+    },
+    {
+     "timesteps": 303104,
+     "success_rate": 0.5416666666666666,
+     "length_ratio": 2.6256131521763564,
+     "j_ratio": 2.5846306891486037,
+     "deadlock_rate": 0.1875,
+     "timeout_rate": 0.2708333333333333,
+     "train_success": 0.51
+    }
+   ],
+   "final": {
+    "success_rate": 0.5416666666666666,
+    "deadlock_rate": 0.1875,
+    "timeout_rate": 0.2708333333333333,
+    "length_ratio": 2.6256131521763564,
+    "j_ratio": 2.5846306891486037,
+    "bends_agent": 6.884615384615385,
+    "bends_astar": 2.9615384615384617,
+    "ep_steps": 88.10416666666667,
+    "n_invalid": 0.0
+   }
+  },
+  {
+   "config": "const=1.5",
+   "fail_cost_mode": "const",
+   "fail_cost_const": 1.5,
+   "seed": 777001,
+   "minutes": 2.44,
+   "history": [
+    {
+     "timesteps": 50000,
+     "success_rate": 0.1875,
+     "length_ratio": 4.076027295714995,
+     "j_ratio": 4.141408448189853,
+     "deadlock_rate": 0.5208333333333334,
+     "timeout_rate": 0.2916666666666667,
+     "train_success": 0.14
+    },
+    {
+     "timesteps": 100000,
+     "success_rate": 0.125,
+     "length_ratio": 2.7354721951119827,
+     "j_ratio": 2.7799563787333277,
+     "deadlock_rate": 0.5625,
+     "timeout_rate": 0.3125,
+     "train_success": 0.19
+    },
+    {
+     "timesteps": 150000,
+     "success_rate": 0.20833333333333334,
+     "length_ratio": 4.050015254849578,
+     "j_ratio": 3.4915542319659894,
+     "deadlock_rate": 0.5208333333333334,
+     "timeout_rate": 0.2708333333333333,
+     "train_success": 0.3
+    },
+    {
+     "timesteps": 200000,
+     "success_rate": 0.3333333333333333,
+     "length_ratio": 2.8152083302694377,
+     "j_ratio": 2.8469790750934587,
+     "deadlock_rate": 0.4166666666666667,
+     "timeout_rate": 0.25,
+     "train_success": 0.34
+    },
+    {
+     "timesteps": 250000,
+     "success_rate": 0.4166666666666667,
+     "length_ratio": 2.432149374761658,
+     "j_ratio": 2.495483491269431,
+     "deadlock_rate": 0.3333333333333333,
+     "timeout_rate": 0.25,
+     "train_success": 0.41
+    },
+    {
+     "timesteps": 300000,
+     "success_rate": 0.5208333333333334,
+     "length_ratio": 3.0545304325183014,
+     "j_ratio": 3.122629838493951,
+     "deadlock_rate": 0.25,
+     "timeout_rate": 0.22916666666666666,
+     "train_success": 0.47
+    },
+    {
+     "timesteps": 303104,
+     "success_rate": 0.5208333333333334,
+     "length_ratio": 2.7453630516448517,
+     "j_ratio": 2.8327646449477406,
+     "deadlock_rate": 0.20833333333333334,
+     "timeout_rate": 0.2708333333333333,
+     "train_success": 0.45
+    }
+   ],
+   "final": {
+    "success_rate": 0.5208333333333334,
+    "deadlock_rate": 0.20833333333333334,
+    "timeout_rate": 0.2708333333333333,
+    "length_ratio": 2.7453630516448517,
+    "j_ratio": 2.8327646449477406,
+    "bends_agent": 8.0,
+    "bends_astar": 3.04,
+    "ep_steps": 89.4375,
+    "n_invalid": 0.0
+   }
+  },
+  {
+   "config": "const=2.0",
+   "fail_cost_mode": "const",
+   "fail_cost_const": 2.0,
+   "seed": 777001,
+   "minutes": 2.39,
+   "history": [
+    {
+     "timesteps": 50000,
+     "success_rate": 0.0625,
+     "length_ratio": 4.65954220852623,
+     "j_ratio": 4.505850998087957,
+     "deadlock_rate": 0.4791666666666667,
+     "timeout_rate": 0.4583333333333333,
+     "train_success": 0.19
+    },
+    {
+     "timesteps": 100000,
+     "success_rate": 0.10416666666666667,
+     "length_ratio": 4.053948839815811,
+     "j_ratio": 4.0068720841642556,
+     "deadlock_rate": 0.5,
+     "timeout_rate": 0.3958333333333333,
+     "train_success": 0.27
+    },
+    {
+     "timesteps": 150000,
+     "success_rate": 0.25,
+     "length_ratio": 3.8285219900927814,
+     "j_ratio": 3.7326642877471485,
+     "deadlock_rate": 0.4583333333333333,
+     "timeout_rate": 0.2916666666666667,
+     "train_success": 0.32
+    },
+    {
+     "timesteps": 200000,
+     "success_rate": 0.2916666666666667,
+     "length_ratio": 3.2382224100098176,
+     "j_ratio": 3.4090844358358,
+     "deadlock_rate": 0.3958333333333333,
+     "timeout_rate": 0.3125,
+     "train_success": 0.4
+    },
+    {
+     "timesteps": 250000,
+     "success_rate": 0.3958333333333333,
+     "length_ratio": 3.192480693198701,
+     "j_ratio": 3.1643947185116788,
+     "deadlock_rate": 0.4166666666666667,
+     "timeout_rate": 0.1875,
+     "train_success": 0.42
+    },
+    {
+     "timesteps": 300000,
+     "success_rate": 0.4166666666666667,
+     "length_ratio": 3.7377846889835142,
+     "j_ratio": 3.722280432507815,
+     "deadlock_rate": 0.3125,
+     "timeout_rate": 0.2708333333333333,
+     "train_success": 0.5
+    },
+    {
+     "timesteps": 303104,
+     "success_rate": 0.4166666666666667,
+     "length_ratio": 3.800623516587798,
+     "j_ratio": 3.9502476108211217,
+     "deadlock_rate": 0.2916666666666667,
+     "timeout_rate": 0.2916666666666667,
+     "train_success": 0.54
+    }
+   ],
+   "final": {
+    "success_rate": 0.4166666666666667,
+    "deadlock_rate": 0.2916666666666667,
+    "timeout_rate": 0.2916666666666667,
+    "length_ratio": 3.800623516587798,
+    "j_ratio": 3.9502476108211217,
+    "bends_agent": 9.9,
+    "bends_astar": 2.75,
+    "ep_steps": 98.72916666666667,
+    "n_invalid": 0.0
+   }
+  },
+  {
+   "config": "const=0.5",
+   "fail_cost_mode": "const",
+   "fail_cost_const": 0.5,
+   "seed": 424242,
+   "minutes": 2.45,
+   "history": [
+    {
+     "timesteps": 50000,
+     "success_rate": 0.125,
+     "length_ratio": 2.442215149093793,
+     "j_ratio": 2.4355656327327266,
+     "deadlock_rate": 0.5208333333333334,
+     "timeout_rate": 0.3541666666666667,
+     "train_success": 0.14
+    },
+    {
+     "timesteps": 100000,
+     "success_rate": 0.16666666666666666,
+     "length_ratio": 3.196960690181955,
+     "j_ratio": 3.1031073203228843,
+     "deadlock_rate": 0.4166666666666667,
+     "timeout_rate": 0.4166666666666667,
+     "train_success": 0.23
+    },
+    {
+     "timesteps": 150000,
+     "success_rate": 0.14583333333333334,
+     "length_ratio": 2.96636597402036,
+     "j_ratio": 2.9135786669092654,
+     "deadlock_rate": 0.5416666666666666,
+     "timeout_rate": 0.3125,
+     "train_success": 0.19
+    },
+    {
+     "timesteps": 200000,
+     "success_rate": 0.2916666666666667,
+     "length_ratio": 3.47843818323522,
+     "j_ratio": 3.4036056146239595,
+     "deadlock_rate": 0.4166666666666667,
+     "timeout_rate": 0.2916666666666667,
+     "train_success": 0.36
+    },
+    {
+     "timesteps": 250000,
+     "success_rate": 0.3541666666666667,
+     "length_ratio": 3.162427188892232,
+     "j_ratio": 3.112076485237459,
+     "deadlock_rate": 0.4166666666666667,
+     "timeout_rate": 0.22916666666666666,
+     "train_success": 0.37
+    },
+    {
+     "timesteps": 300000,
+     "success_rate": 0.3958333333333333,
+     "length_ratio": 3.6580930187151024,
+     "j_ratio": 3.668295710446745,
+     "deadlock_rate": 0.2916666666666667,
+     "timeout_rate": 0.3125,
+     "train_success": 0.51
+    },
+    {
+     "timesteps": 303104,
+     "success_rate": 0.4791666666666667,
+     "length_ratio": 3.5062584388728575,
+     "j_ratio": 3.4999195541097587,
+     "deadlock_rate": 0.2708333333333333,
+     "timeout_rate": 0.25,
+     "train_success": 0.49
+    }
+   ],
+   "final": {
+    "success_rate": 0.4791666666666667,
+    "deadlock_rate": 0.2708333333333333,
+    "timeout_rate": 0.25,
+    "length_ratio": 3.5062584388728575,
+    "j_ratio": 3.4999195541097587,
+    "bends_agent": 9.26086956521739,
+    "bends_astar": 3.0434782608695654,
+    "ep_steps": 91.25,
+    "n_invalid": 0.0
+   }
+  },
+  {
+   "config": "const=1.0",
+   "fail_cost_mode": "const",
+   "fail_cost_const": 1.0,
+   "seed": 424242,
+   "minutes": 2.49,
+   "history": [
+    {
+     "timesteps": 50000,
+     "success_rate": 0.08333333333333333,
+     "length_ratio": 3.91688505709761,
+     "j_ratio": 3.2700233666510146,
+     "deadlock_rate": 0.4166666666666667,
+     "timeout_rate": 0.5,
+     "train_success": 0.21
+    },
+    {
+     "timesteps": 100000,
+     "success_rate": 0.20833333333333334,
+     "length_ratio": 4.8493703448419945,
+     "j_ratio": 4.5398862633230435,
+     "deadlock_rate": 0.3958333333333333,
+     "timeout_rate": 0.3958333333333333,
+     "train_success": 0.23
+    },
+    {
+     "timesteps": 150000,
+     "success_rate": 0.1875,
+     "length_ratio": 4.364444215175578,
+     "j_ratio": 4.264498439405072,
+     "deadlock_rate": 0.375,
+     "timeout_rate": 0.4375,
+     "train_success": 0.31
+    },
+    {
+     "timesteps": 200000,
+     "success_rate": 0.2916666666666667,
+     "length_ratio": 3.709057898175051,
+     "j_ratio": 3.444998984296568,
+     "deadlock_rate": 0.3541666666666667,
+     "timeout_rate": 0.3541666666666667,
+     "train_success": 0.34
+    },
+    {
+     "timesteps": 250000,
+     "success_rate": 0.375,
+     "length_ratio": 3.1237125796506082,
+     "j_ratio": 3.2493832493823973,
+     "deadlock_rate": 0.3541666666666667,
+     "timeout_rate": 0.2708333333333333,
+     "train_success": 0.36
+    },
+    {
+     "timesteps": 300000,
+     "success_rate": 0.5416666666666666,
+     "length_ratio": 2.8207752856592516,
+     "j_ratio": 2.829908688059809,
+     "deadlock_rate": 0.1875,
+     "timeout_rate": 0.2708333333333333,
+     "train_success": 0.52
+    },
+    {
+     "timesteps": 303104,
+     "success_rate": 0.4583333333333333,
+     "length_ratio": 2.97241869504514,
+     "j_ratio": 2.9555123593633366,
+     "deadlock_rate": 0.2916666666666667,
+     "timeout_rate": 0.25,
+     "train_success": 0.43
+    }
+   ],
+   "final": {
+    "success_rate": 0.4583333333333333,
+    "deadlock_rate": 0.2916666666666667,
+    "timeout_rate": 0.25,
+    "length_ratio": 2.97241869504514,
+    "j_ratio": 2.9555123593633366,
+    "bends_agent": 7.590909090909091,
+    "bends_astar": 2.909090909090909,
+    "ep_steps": 89.33333333333333,
+    "n_invalid": 0.0
+   }
+  },
+  {
+   "config": "const=1.5",
+   "fail_cost_mode": "const",
+   "fail_cost_const": 1.5,
+   "seed": 424242,
+   "minutes": 2.41,
+   "history": [
+    {
+     "timesteps": 50000,
+     "success_rate": 0.041666666666666664,
+     "length_ratio": 1.559943575036256,
+     "j_ratio": 1.570376395585372,
+     "deadlock_rate": 0.4166666666666667,
+     "timeout_rate": 0.5416666666666666,
+     "train_success": 0.15
+    },
+    {
+     "timesteps": 100000,
+     "success_rate": 0.08333333333333333,
+     "length_ratio": 4.784397687753538,
+     "j_ratio": 4.573331332420449,
+     "deadlock_rate": 0.4166666666666667,
+     "timeout_rate": 0.5,
+     "train_success": 0.17
+    },
+    {
+     "timesteps": 150000,
+     "success_rate": 0.2916666666666667,
+     "length_ratio": 3.2365231822301364,
+     "j_ratio": 3.292872333001423,
+     "deadlock_rate": 0.4375,
+     "timeout_rate": 0.2708333333333333,
+     "train_success": 0.22
+    },
+    {
+     "timesteps": 200000,
+     "success_rate": 0.3333333333333333,
+     "length_ratio": 2.5256053236941867,
+     "j_ratio": 2.530586294903089,
+     "deadlock_rate": 0.3958333333333333,
+     "timeout_rate": 0.2708333333333333,
+     "train_success": 0.4
+    },
+    {
+     "timesteps": 250000,
+     "success_rate": 0.4166666666666667,
+     "length_ratio": 2.937813503053087,
+     "j_ratio": 2.969202929583969,
+     "deadlock_rate": 0.3333333333333333,
+     "timeout_rate": 0.25,
+     "train_success": 0.44
+    },
+    {
+     "timesteps": 300000,
+     "success_rate": 0.4375,
+     "length_ratio": 3.584022347251655,
+     "j_ratio": 3.609839143337443,
+     "deadlock_rate": 0.2708333333333333,
+     "timeout_rate": 0.2916666666666667,
+     "train_success": 0.35
+    },
+    {
+     "timesteps": 303104,
+     "success_rate": 0.4375,
+     "length_ratio": 3.3680861520191874,
+     "j_ratio": 3.2771065733819285,
+     "deadlock_rate": 0.25,
+     "timeout_rate": 0.3125,
+     "train_success": 0.44
+    }
+   ],
+   "final": {
+    "success_rate": 0.4375,
+    "deadlock_rate": 0.25,
+    "timeout_rate": 0.3125,
+    "length_ratio": 3.3680861520191874,
+    "j_ratio": 3.2771065733819285,
+    "bends_agent": 8.80952380952381,
+    "bends_astar": 3.0952380952380953,
+    "ep_steps": 101.41666666666667,
+    "n_invalid": 0.0
+   }
+  },
+  {
+   "config": "const=2.0",
+   "fail_cost_mode": "const",
+   "fail_cost_const": 2.0,
+   "seed": 424242,
+   "minutes": 2.49,
+   "history": [
+    {
+     "timesteps": 50000,
+     "success_rate": 0.041666666666666664,
+     "length_ratio": 6.293916209542915,
+     "j_ratio": 6.31948966668117,
+     "deadlock_rate": 0.4791666666666667,
+     "timeout_rate": 0.4791666666666667,
+     "train_success": 0.14
+    },
+    {
+     "timesteps": 100000,
+     "success_rate": 0.08333333333333333,
+     "length_ratio": 2.4290810902059845,
+     "j_ratio": 2.411834157443268,
+     "deadlock_rate": 0.5,
+     "timeout_rate": 0.4166666666666667,
+     "train_success": 0.15
+    },
+    {
+     "timesteps": 150000,
+     "success_rate": 0.14583333333333334,
+     "length_ratio": 4.180772522252455,
+     "j_ratio": 3.8809852599401373,
+     "deadlock_rate": 0.5833333333333334,
+     "timeout_rate": 0.2708333333333333,
+     "train_success": 0.31
+    },
+    {
+     "timesteps": 200000,
+     "success_rate": 0.20833333333333334,
+     "length_ratio": 4.312867425076296,
+     "j_ratio": 4.2294983791745135,
+     "deadlock_rate": 0.5416666666666666,
+     "timeout_rate": 0.25,
+     "train_success": 0.32
+    },
+    {
+     "timesteps": 250000,
+     "success_rate": 0.25,
+     "length_ratio": 2.496376811009917,
+     "j_ratio": 2.5076501110547422,
+     "deadlock_rate": 0.4375,
+     "timeout_rate": 0.3125,
+     "train_success": 0.43
+    },
+    {
+     "timesteps": 300000,
+     "success_rate": 0.4375,
+     "length_ratio": 3.008088830739382,
+     "j_ratio": 3.0072508643012346,
+     "deadlock_rate": 0.2916666666666667,
+     "timeout_rate": 0.2708333333333333,
+     "train_success": 0.55
+    },
+    {
+     "timesteps": 303104,
+     "success_rate": 0.5416666666666666,
+     "length_ratio": 3.002127292690007,
+     "j_ratio": 3.074505360083405,
+     "deadlock_rate": 0.2708333333333333,
+     "timeout_rate": 0.1875,
+     "train_success": 0.52
+    }
+   ],
+   "final": {
+    "success_rate": 0.5416666666666666,
+    "deadlock_rate": 0.2708333333333333,
+    "timeout_rate": 0.1875,
+    "length_ratio": 3.002127292690007,
+    "j_ratio": 3.074505360083405,
+    "bends_agent": 7.884615384615385,
+    "bends_astar": 2.8846153846153846,
+    "ep_steps": 80.77083333333333,
+    "n_invalid": 0.0
+   }
+  },
+  {
+   "config": "const=0.5",
+   "fail_cost_mode": "const",
+   "fail_cost_const": 0.5,
+   "seed": 90210,
+   "minutes": 2.5,
+   "history": [
+    {
+     "timesteps": 50000,
+     "success_rate": 0.08333333333333333,
+     "length_ratio": 4.773254135712499,
+     "j_ratio": 4.330755285743965,
+     "deadlock_rate": 0.4375,
+     "timeout_rate": 0.4791666666666667,
+     "train_success": 0.2
+    },
+    {
+     "timesteps": 100000,
+     "success_rate": 0.0625,
+     "length_ratio": 5.045990496632364,
+     "j_ratio": 5.41189205052449,
+     "deadlock_rate": 0.6041666666666666,
+     "timeout_rate": 0.3333333333333333,
+     "train_success": 0.25
+    },
+    {
+     "timesteps": 150000,
+     "success_rate": 0.10416666666666667,
+     "length_ratio": 3.9412937408640842,
+     "j_ratio": 3.950790495030226,
+     "deadlock_rate": 0.625,
+     "timeout_rate": 0.2708333333333333,
+     "train_success": 0.31
+    },
+    {
+     "timesteps": 200000,
+     "success_rate": 0.25,
+     "length_ratio": 4.311138662394447,
+     "j_ratio": 4.4172361642182505,
+     "deadlock_rate": 0.4583333333333333,
+     "timeout_rate": 0.2916666666666667,
+     "train_success": 0.25
+    },
+    {
+     "timesteps": 250000,
+     "success_rate": 0.22916666666666666,
+     "length_ratio": 4.102720278004899,
+     "j_ratio": 4.355376093067797,
+     "deadlock_rate": 0.5208333333333334,
+     "timeout_rate": 0.25,
+     "train_success": 0.42
+    },
+    {
+     "timesteps": 300000,
+     "success_rate": 0.4583333333333333,
+     "length_ratio": 3.692166646894952,
+     "j_ratio": 3.734507563169235,
+     "deadlock_rate": 0.3541666666666667,
+     "timeout_rate": 0.1875,
+     "train_success": 0.58
+    },
+    {
+     "timesteps": 303104,
+     "success_rate": 0.4166666666666667,
+     "length_ratio": 2.3437012240959034,
+     "j_ratio": 2.5023854285873712,
+     "deadlock_rate": 0.4166666666666667,
+     "timeout_rate": 0.16666666666666666,
+     "train_success": 0.58
+    }
+   ],
+   "final": {
+    "success_rate": 0.4166666666666667,
+    "deadlock_rate": 0.4166666666666667,
+    "timeout_rate": 0.16666666666666666,
+    "length_ratio": 2.3437012240959034,
+    "j_ratio": 2.5023854285873712,
+    "bends_agent": 7.65,
+    "bends_astar": 3.05,
+    "ep_steps": 74.5625,
+    "n_invalid": 0.0
+   }
+  },
+  {
+   "config": "const=1.0",
+   "fail_cost_mode": "const",
+   "fail_cost_const": 1.0,
+   "seed": 90210,
+   "minutes": 2.3,
+   "history": [
+    {
+     "timesteps": 50000,
+     "success_rate": 0.08333333333333333,
+     "length_ratio": 5.773081968210509,
+     "j_ratio": 5.82852035779311,
+     "deadlock_rate": 0.5416666666666666,
+     "timeout_rate": 0.375,
+     "train_success": 0.16
+    },
+    {
+     "timesteps": 100000,
+     "success_rate": 0.10416666666666667,
+     "length_ratio": 4.1681685718494235,
+     "j_ratio": 4.09387417442497,
+     "deadlock_rate": 0.6458333333333334,
+     "timeout_rate": 0.25,
+     "train_success": 0.26
+    },
+    {
+     "timesteps": 150000,
+     "success_rate": 0.14583333333333334,
+     "length_ratio": 3.432652164352402,
+     "j_ratio": 3.3385053156264113,
+     "deadlock_rate": 0.5208333333333334,
+     "timeout_rate": 0.3333333333333333,
+     "train_success": 0.21
+    },
+    {
+     "timesteps": 200000,
+     "success_rate": 0.14583333333333334,
+     "length_ratio": 3.3206762440874047,
+     "j_ratio": 3.39948652263983,
+     "deadlock_rate": 0.2916666666666667,
+     "timeout_rate": 0.5625,
+     "train_success": 0.27
+    },
+    {
+     "timesteps": 250000,
+     "success_rate": 0.4583333333333333,
+     "length_ratio": 3.005038751095889,
+     "j_ratio": 3.059313183812039,
+     "deadlock_rate": 0.2916666666666667,
+     "timeout_rate": 0.25,
+     "train_success": 0.46
+    },
+    {
+     "timesteps": 300000,
+     "success_rate": 0.5208333333333334,
+     "length_ratio": 3.1030583500746123,
+     "j_ratio": 3.1798468960439386,
+     "deadlock_rate": 0.22916666666666666,
+     "timeout_rate": 0.25,
+     "train_success": 0.46
+    },
+    {
+     "timesteps": 303104,
+     "success_rate": 0.4791666666666667,
+     "length_ratio": 2.554289536781076,
+     "j_ratio": 2.577871353406715,
+     "deadlock_rate": 0.3125,
+     "timeout_rate": 0.20833333333333334,
+     "train_success": 0.46
+    }
+   ],
+   "final": {
+    "success_rate": 0.4791666666666667,
+    "deadlock_rate": 0.3125,
+    "timeout_rate": 0.20833333333333334,
+    "length_ratio": 2.554289536781076,
+    "j_ratio": 2.577871353406715,
+    "bends_agent": 7.130434782608695,
+    "bends_astar": 2.9565217391304346,
+    "ep_steps": 77.58333333333333,
+    "n_invalid": 0.0
+   }
+  },
+  {
+   "config": "const=1.5",
+   "fail_cost_mode": "const",
+   "fail_cost_const": 1.5,
+   "seed": 90210,
+   "minutes": 2.43,
+   "history": [
+    {
+     "timesteps": 50000,
+     "success_rate": 0.0625,
+     "length_ratio": 3.2591205237232845,
+     "j_ratio": 3.2099804147937867,
+     "deadlock_rate": 0.3958333333333333,
+     "timeout_rate": 0.5416666666666666,
+     "train_success": 0.21
+    },
+    {
+     "timesteps": 100000,
+     "success_rate": 0.16666666666666666,
+     "length_ratio": 3.861377884864313,
+     "j_ratio": 3.8593275961676206,
+     "deadlock_rate": 0.4166666666666667,
+     "timeout_rate": 0.4166666666666667,
+     "train_success": 0.19
+    },
+    {
+     "timesteps": 150000,
+     "success_rate": 0.2708333333333333,
+     "length_ratio": 2.887651413146514,
+     "j_ratio": 2.772027527223361,
+     "deadlock_rate": 0.4166666666666667,
+     "timeout_rate": 0.3125,
+     "train_success": 0.28
+    },
+    {
+     "timesteps": 200000,
+     "success_rate": 0.2708333333333333,
+     "length_ratio": 2.779845566297134,
+     "j_ratio": 2.754163018054101,
+     "deadlock_rate": 0.3958333333333333,
+     "timeout_rate": 0.3333333333333333,
+     "train_success": 0.29
+    },
+    {
+     "timesteps": 250000,
+     "success_rate": 0.3333333333333333,
+     "length_ratio": 3.3513642339980274,
+     "j_ratio": 3.47822012448265,
+     "deadlock_rate": 0.3541666666666667,
+     "timeout_rate": 0.3125,
+     "train_success": 0.35
+    },
+    {
+     "timesteps": 300000,
+     "success_rate": 0.4166666666666667,
+     "length_ratio": 2.536184450016606,
+     "j_ratio": 2.5457394567787652,
+     "deadlock_rate": 0.375,
+     "timeout_rate": 0.20833333333333334,
+     "train_success": 0.44
+    },
+    {
+     "timesteps": 303104,
+     "success_rate": 0.4583333333333333,
+     "length_ratio": 3.102050071435037,
+     "j_ratio": 3.0947124886670196,
+     "deadlock_rate": 0.3958333333333333,
+     "timeout_rate": 0.14583333333333334,
+     "train_success": 0.48
+    }
+   ],
+   "final": {
+    "success_rate": 0.4583333333333333,
+    "deadlock_rate": 0.3958333333333333,
+    "timeout_rate": 0.14583333333333334,
+    "length_ratio": 3.102050071435037,
+    "j_ratio": 3.0947124886670196,
+    "bends_agent": 7.954545454545454,
+    "bends_astar": 2.772727272727273,
+    "ep_steps": 74.0,
+    "n_invalid": 0.0
+   }
+  },
+  {
+   "config": "const=2.0",
+   "fail_cost_mode": "const",
+   "fail_cost_const": 2.0,
+   "seed": 90210,
+   "minutes": 2.35,
+   "history": [
+    {
+     "timesteps": 50000,
+     "success_rate": 0.08333333333333333,
+     "length_ratio": 5.2355638751542655,
+     "j_ratio": 4.79198210634715,
+     "deadlock_rate": 0.3333333333333333,
+     "timeout_rate": 0.5833333333333334,
+     "train_success": 0.16
+    },
+    {
+     "timesteps": 100000,
+     "success_rate": 0.14583333333333334,
+     "length_ratio": 2.6856763949597746,
+     "j_ratio": 2.7040494166509244,
+     "deadlock_rate": 0.5208333333333334,
+     "timeout_rate": 0.3333333333333333,
+     "train_success": 0.26
+    },
+    {
+     "timesteps": 150000,
+     "success_rate": 0.25,
+     "length_ratio": 2.088480590312617,
+     "j_ratio": 2.080082183680858,
+     "deadlock_rate": 0.4375,
+     "timeout_rate": 0.3125,
+     "train_success": 0.21
+    },
+    {
+     "timesteps": 200000,
+     "success_rate": 0.3958333333333333,
+     "length_ratio": 2.9066117540414336,
+     "j_ratio": 2.951096715651566,
+     "deadlock_rate": 0.3333333333333333,
+     "timeout_rate": 0.2708333333333333,
+     "train_success": 0.39
+    },
+    {
+     "timesteps": 250000,
+     "success_rate": 0.5416666666666666,
+     "length_ratio": 2.7152923940828937,
+     "j_ratio": 2.8874525810779277,
+     "deadlock_rate": 0.3125,
+     "timeout_rate": 0.14583333333333334,
+     "train_success": 0.53
+    },
+    {
+     "timesteps": 300000,
+     "success_rate": 0.4375,
+     "length_ratio": 2.8324033354751648,
+     "j_ratio": 2.9021731826661927,
+     "deadlock_rate": 0.3125,
+     "timeout_rate": 0.25,
+     "train_success": 0.57
+    },
+    {
+     "timesteps": 303104,
+     "success_rate": 0.5,
+     "length_ratio": 2.5931567593577807,
+     "j_ratio": 2.651877372634813,
+     "deadlock_rate": 0.3125,
+     "timeout_rate": 0.1875,
+     "train_success": 0.61
+    }
+   ],
+   "final": {
+    "success_rate": 0.5,
+    "deadlock_rate": 0.3125,
+    "timeout_rate": 0.1875,
+    "length_ratio": 2.5931567593577807,
+    "j_ratio": 2.651877372634813,
+    "bends_agent": 7.583333333333333,
+    "bends_astar": 3.0,
+    "ep_steps": 77.3125,
+    "n_invalid": 0.0
+   }
+  },
+  {
+   "config": "const=0.5",
+   "fail_cost_mode": "const",
+   "fail_cost_const": 0.5,
+   "seed": 13579,
+   "minutes": 2.54,
+   "history": [
+    {
+     "timesteps": 50000,
+     "success_rate": 0.10416666666666667,
+     "length_ratio": 2.3621227422459343,
+     "j_ratio": 2.1451209889489995,
+     "deadlock_rate": 0.5208333333333334,
+     "timeout_rate": 0.375,
+     "train_success": 0.07
+    },
+    {
+     "timesteps": 100000,
+     "success_rate": 0.041666666666666664,
+     "length_ratio": 3.7839596973012593,
+     "j_ratio": 4.01884376557866,
+     "deadlock_rate": 0.5208333333333334,
+     "timeout_rate": 0.4375,
+     "train_success": 0.14
+    },
+    {
+     "timesteps": 150000,
+     "success_rate": 0.08333333333333333,
+     "length_ratio": 2.5578553791438194,
+     "j_ratio": 2.669172626976925,
+     "deadlock_rate": 0.4583333333333333,
+     "timeout_rate": 0.4583333333333333,
+     "train_success": 0.25
+    },
+    {
+     "timesteps": 200000,
+     "success_rate": 0.1875,
+     "length_ratio": 3.5118249128657757,
+     "j_ratio": 3.7248260059993794,
+     "deadlock_rate": 0.4375,
+     "timeout_rate": 0.375,
+     "train_success": 0.26
+    },
+    {
+     "timesteps": 250000,
+     "success_rate": 0.22916666666666666,
+     "length_ratio": 3.1534798911009787,
+     "j_ratio": 3.3116727966798205,
+     "deadlock_rate": 0.3958333333333333,
+     "timeout_rate": 0.375,
+     "train_success": 0.36
+    },
+    {
+     "timesteps": 300000,
+     "success_rate": 0.375,
+     "length_ratio": 5.590076961224921,
+     "j_ratio": 5.45706412096827,
+     "deadlock_rate": 0.3541666666666667,
+     "timeout_rate": 0.2708333333333333,
+     "train_success": 0.43
+    },
+    {
+     "timesteps": 303104,
+     "success_rate": 0.375,
+     "length_ratio": 4.096906029428264,
+     "j_ratio": 4.012188481544109,
+     "deadlock_rate": 0.2916666666666667,
+     "timeout_rate": 0.3333333333333333,
+     "train_success": 0.4
+    }
+   ],
+   "final": {
+    "success_rate": 0.375,
+    "deadlock_rate": 0.2916666666666667,
+    "timeout_rate": 0.3333333333333333,
+    "length_ratio": 4.096906029428264,
+    "j_ratio": 4.012188481544109,
+    "bends_agent": 10.055555555555555,
+    "bends_astar": 2.9444444444444446,
+    "ep_steps": 104.45833333333333,
+    "n_invalid": 0.0
+   }
+  },
+  {
+   "config": "const=1.0",
+   "fail_cost_mode": "const",
+   "fail_cost_const": 1.0,
+   "seed": 13579,
+   "minutes": 2.36,
+   "history": [
+    {
+     "timesteps": 50000,
+     "success_rate": 0.0625,
+     "length_ratio": 2.9601754767870982,
+     "j_ratio": 2.8878602046814366,
+     "deadlock_rate": 0.5625,
+     "timeout_rate": 0.375,
+     "train_success": 0.12
+    },
+    {
+     "timesteps": 100000,
+     "success_rate": 0.125,
+     "length_ratio": 2.8628216915218654,
+     "j_ratio": 2.8696448156391146,
+     "deadlock_rate": 0.5833333333333334,
+     "timeout_rate": 0.2916666666666667,
+     "train_success": 0.14
+    },
+    {
+     "timesteps": 150000,
+     "success_rate": 0.25,
+     "length_ratio": 2.904435273539739,
+     "j_ratio": 2.762785398838425,
+     "deadlock_rate": 0.4375,
+     "timeout_rate": 0.3125,
+     "train_success": 0.23
+    },
+    {
+     "timesteps": 200000,
+     "success_rate": 0.375,
+     "length_ratio": 2.4731017489664135,
+     "j_ratio": 2.558521861996214,
+     "deadlock_rate": 0.4375,
+     "timeout_rate": 0.1875,
+     "train_success": 0.33
+    },
+    {
+     "timesteps": 250000,
+     "success_rate": 0.4375,
+     "length_ratio": 3.207630870276989,
+     "j_ratio": 3.321088044705298,
+     "deadlock_rate": 0.25,
+     "timeout_rate": 0.3125,
+     "train_success": 0.4
+    },
+    {
+     "timesteps": 300000,
+     "success_rate": 0.4375,
+     "length_ratio": 3.3038666072043332,
+     "j_ratio": 3.327128547718737,
+     "deadlock_rate": 0.3333333333333333,
+     "timeout_rate": 0.22916666666666666,
+     "train_success": 0.45
+    },
+    {
+     "timesteps": 303104,
+     "success_rate": 0.4583333333333333,
+     "length_ratio": 2.5732349214601906,
+     "j_ratio": 2.6414979095978883,
+     "deadlock_rate": 0.2916666666666667,
+     "timeout_rate": 0.25,
+     "train_success": 0.49
+    }
+   ],
+   "final": {
+    "success_rate": 0.4583333333333333,
+    "deadlock_rate": 0.2916666666666667,
+    "timeout_rate": 0.25,
+    "length_ratio": 2.5732349214601906,
+    "j_ratio": 2.6414979095978883,
+    "bends_agent": 7.0,
+    "bends_astar": 2.8636363636363638,
+    "ep_steps": 86.04166666666667,
+    "n_invalid": 0.0
+   }
+  },
+  {
+   "config": "const=1.5",
+   "fail_cost_mode": "const",
+   "fail_cost_const": 1.5,
+   "seed": 13579,
+   "minutes": 2.4,
+   "history": [
+    {
+     "timesteps": 50000,
+     "success_rate": 0.10416666666666667,
+     "length_ratio": 4.7598704400762,
+     "j_ratio": 4.367296767161696,
+     "deadlock_rate": 0.4583333333333333,
+     "timeout_rate": 0.4375,
+     "train_success": 0.13
+    },
+    {
+     "timesteps": 100000,
+     "success_rate": 0.125,
+     "length_ratio": 2.7768577411117747,
+     "j_ratio": 2.80401752230261,
+     "deadlock_rate": 0.5,
+     "timeout_rate": 0.375,
+     "train_success": 0.17
+    },
+    {
+     "timesteps": 150000,
+     "success_rate": 0.22916666666666666,
+     "length_ratio": 3.139947489504354,
+     "j_ratio": 3.291471494582299,
+     "deadlock_rate": 0.4791666666666667,
+     "timeout_rate": 0.2916666666666667,
+     "train_success": 0.24
+    },
+    {
+     "timesteps": 200000,
+     "success_rate": 0.3125,
+     "length_ratio": 3.6237293927163603,
+     "j_ratio": 3.3853350338141808,
+     "deadlock_rate": 0.4791666666666667,
+     "timeout_rate": 0.20833333333333334,
+     "train_success": 0.39
+    },
+    {
+     "timesteps": 250000,
+     "success_rate": 0.4375,
+     "length_ratio": 3.148651808225274,
+     "j_ratio": 3.125372519277375,
+     "deadlock_rate": 0.375,
+     "timeout_rate": 0.1875,
+     "train_success": 0.48
+    },
+    {
+     "timesteps": 300000,
+     "success_rate": 0.4583333333333333,
+     "length_ratio": 2.813647151335171,
+     "j_ratio": 2.7812581791897513,
+     "deadlock_rate": 0.3333333333333333,
+     "timeout_rate": 0.20833333333333334,
+     "train_success": 0.6
+    },
+    {
+     "timesteps": 303104,
+     "success_rate": 0.3958333333333333,
+     "length_ratio": 2.8025984003968234,
+     "j_ratio": 2.7568967704711236,
+     "deadlock_rate": 0.3125,
+     "timeout_rate": 0.2916666666666667,
+     "train_success": 0.58
+    }
+   ],
+   "final": {
+    "success_rate": 0.3958333333333333,
+    "deadlock_rate": 0.3125,
+    "timeout_rate": 0.2916666666666667,
+    "length_ratio": 2.8025984003968234,
+    "j_ratio": 2.7568967704711236,
+    "bends_agent": 8.052631578947368,
+    "bends_astar": 3.0,
+    "ep_steps": 93.45833333333333,
+    "n_invalid": 0.0
+   }
+  },
+  {
+   "config": "const=2.0",
+   "fail_cost_mode": "const",
+   "fail_cost_const": 2.0,
+   "seed": 13579,
+   "minutes": 2.56,
+   "history": [
+    {
+     "timesteps": 50000,
+     "success_rate": 0.0625,
+     "length_ratio": 3.379450707089461,
+     "j_ratio": 3.2161180796398217,
+     "deadlock_rate": 0.4583333333333333,
+     "timeout_rate": 0.4791666666666667,
+     "train_success": 0.16
+    },
+    {
+     "timesteps": 100000,
+     "success_rate": 0.14583333333333334,
+     "length_ratio": 3.6072448840994324,
+     "j_ratio": 3.4568160685899376,
+     "deadlock_rate": 0.5625,
+     "timeout_rate": 0.2916666666666667,
+     "train_success": 0.2
+    },
+    {
+     "timesteps": 150000,
+     "success_rate": 0.14583333333333334,
+     "length_ratio": 3.935205438769976,
+     "j_ratio": 3.5436799900752365,
+     "deadlock_rate": 0.5416666666666666,
+     "timeout_rate": 0.3125,
+     "train_success": 0.27
+    },
+    {
+     "timesteps": 200000,
+     "success_rate": 0.20833333333333334,
+     "length_ratio": 5.423960773694188,
+     "j_ratio": 5.22375743481716,
+     "deadlock_rate": 0.4583333333333333,
+     "timeout_rate": 0.3333333333333333,
+     "train_success": 0.39
+    },
+    {
+     "timesteps": 250000,
+     "success_rate": 0.25,
+     "length_ratio": 4.1277715899251985,
+     "j_ratio": 4.261853874462571,
+     "deadlock_rate": 0.4375,
+     "timeout_rate": 0.3125,
+     "train_success": 0.4
+    },
+    {
+     "timesteps": 300000,
+     "success_rate": 0.3958333333333333,
+     "length_ratio": 3.24130267898724,
+     "j_ratio": 3.328875644665583,
+     "deadlock_rate": 0.3125,
+     "timeout_rate": 0.2916666666666667,
+     "train_success": 0.59
+    },
+    {
+     "timesteps": 303104,
+     "success_rate": 0.3333333333333333,
+     "length_ratio": 2.680243352349231,
+     "j_ratio": 2.8333352866192842,
+     "deadlock_rate": 0.2916666666666667,
+     "timeout_rate": 0.375,
+     "train_success": 0.59
+    }
+   ],
+   "final": {
+    "success_rate": 0.3333333333333333,
+    "deadlock_rate": 0.2916666666666667,
+    "timeout_rate": 0.375,
+    "length_ratio": 2.680243352349231,
+    "j_ratio": 2.8333352866192842,
+    "bends_agent": 7.875,
+    "bends_astar": 3.0,
+    "ep_steps": 107.85416666666667,
+    "n_invalid": 0.0
+   }
+  },
+  {
+   "config": "const=0.5",
+   "fail_cost_mode": "const",
+   "fail_cost_const": 0.5,
+   "seed": 606060,
+   "minutes": 2.51,
+   "history": [
+    {
+     "timesteps": 50000,
+     "success_rate": 0.0625,
+     "length_ratio": 6.02904117423419,
+     "j_ratio": 5.674590770473785,
+     "deadlock_rate": 0.3541666666666667,
+     "timeout_rate": 0.5833333333333334,
+     "train_success": 0.15
+    },
+    {
+     "timesteps": 100000,
+     "success_rate": 0.020833333333333332,
+     "length_ratio": 3.2655738321235983,
+     "j_ratio": 3.655882028152564,
+     "deadlock_rate": 0.3958333333333333,
+     "timeout_rate": 0.5833333333333334,
+     "train_success": 0.18
+    },
+    {
+     "timesteps": 150000,
+     "success_rate": 0.10416666666666667,
+     "length_ratio": 2.47059163602499,
+     "j_ratio": 2.7631254448672564,
+     "deadlock_rate": 0.4791666666666667,
+     "timeout_rate": 0.4166666666666667,
+     "train_success": 0.23
+    },
+    {
+     "timesteps": 200000,
+     "success_rate": 0.1875,
+     "length_ratio": 3.8742394460404563,
+     "j_ratio": 3.8684374622915954,
+     "deadlock_rate": 0.5,
+     "timeout_rate": 0.3125,
+     "train_success": 0.32
+    },
+    {
+     "timesteps": 250000,
+     "success_rate": 0.3541666666666667,
+     "length_ratio": 2.382817617198608,
+     "j_ratio": 2.4353178518982794,
+     "deadlock_rate": 0.3958333333333333,
+     "timeout_rate": 0.25,
+     "train_success": 0.51
+    },
+    {
+     "timesteps": 300000,
+     "success_rate": 0.4166666666666667,
+     "length_ratio": 2.7939309395243277,
+     "j_ratio": 2.65250536363962,
+     "deadlock_rate": 0.3125,
+     "timeout_rate": 0.2708333333333333,
+     "train_success": 0.47
+    },
+    {
+     "timesteps": 303104,
+     "success_rate": 0.4791666666666667,
+     "length_ratio": 2.6694939643272435,
+     "j_ratio": 2.6396055651660997,
+     "deadlock_rate": 0.3125,
+     "timeout_rate": 0.20833333333333334,
+     "train_success": 0.43
+    }
+   ],
+   "final": {
+    "success_rate": 0.4791666666666667,
+    "deadlock_rate": 0.3125,
+    "timeout_rate": 0.20833333333333334,
+    "length_ratio": 2.6694939643272435,
+    "j_ratio": 2.6396055651660997,
+    "bends_agent": 7.565217391304348,
+    "bends_astar": 3.0434782608695654,
+    "ep_steps": 81.22916666666667,
+    "n_invalid": 0.0
+   }
+  },
+  {
+   "config": "const=1.0",
+   "fail_cost_mode": "const",
+   "fail_cost_const": 1.0,
+   "seed": 606060,
+   "minutes": 2.51,
+   "history": [
+    {
+     "timesteps": 50000,
+     "success_rate": 0.041666666666666664,
+     "length_ratio": 2.145209697601659,
+     "j_ratio": 2.4734300561202764,
+     "deadlock_rate": 0.4166666666666667,
+     "timeout_rate": 0.5416666666666666,
+     "train_success": 0.15
+    },
+    {
+     "timesteps": 100000,
+     "success_rate": 0.10416666666666667,
+     "length_ratio": 2.649780038499016,
+     "j_ratio": 2.642057957826068,
+     "deadlock_rate": 0.5,
+     "timeout_rate": 0.3958333333333333,
+     "train_success": 0.21
+    },
+    {
+     "timesteps": 150000,
+     "success_rate": 0.16666666666666666,
+     "length_ratio": 2.6913631832004516,
+     "j_ratio": 2.610699586204931,
+     "deadlock_rate": 0.5416666666666666,
+     "timeout_rate": 0.2916666666666667,
+     "train_success": 0.19
+    },
+    {
+     "timesteps": 200000,
+     "success_rate": 0.3125,
+     "length_ratio": 3.1410028328032427,
+     "j_ratio": 3.1837157162095506,
+     "deadlock_rate": 0.4375,
+     "timeout_rate": 0.25,
+     "train_success": 0.45
+    },
+    {
+     "timesteps": 250000,
+     "success_rate": 0.3958333333333333,
+     "length_ratio": 3.2525717936326166,
+     "j_ratio": 3.2455561381698534,
+     "deadlock_rate": 0.2708333333333333,
+     "timeout_rate": 0.3333333333333333,
+     "train_success": 0.4
+    },
+    {
+     "timesteps": 300000,
+     "success_rate": 0.3333333333333333,
+     "length_ratio": 3.3306208673989013,
+     "j_ratio": 3.309625177963558,
+     "deadlock_rate": 0.4375,
+     "timeout_rate": 0.22916666666666666,
+     "train_success": 0.42
+    },
+    {
+     "timesteps": 303104,
+     "success_rate": 0.3333333333333333,
+     "length_ratio": 3.437372102690964,
+     "j_ratio": 3.4617952971713053,
+     "deadlock_rate": 0.4583333333333333,
+     "timeout_rate": 0.20833333333333334,
+     "train_success": 0.42
+    }
+   ],
+   "final": {
+    "success_rate": 0.3333333333333333,
+    "deadlock_rate": 0.4583333333333333,
+    "timeout_rate": 0.20833333333333334,
+    "length_ratio": 3.437372102690964,
+    "j_ratio": 3.4617952971713053,
+    "bends_agent": 7.8125,
+    "bends_astar": 2.75,
+    "ep_steps": 86.14583333333333,
+    "n_invalid": 0.0
+   }
+  },
+  {
+   "config": "const=1.5",
+   "fail_cost_mode": "const",
+   "fail_cost_const": 1.5,
+   "seed": 606060,
+   "minutes": 2.46,
+   "history": [
+    {
+     "timesteps": 50000,
+     "success_rate": 0.08333333333333333,
+     "length_ratio": 4.739659759477889,
+     "j_ratio": 4.2252406229205395,
+     "deadlock_rate": 0.3958333333333333,
+     "timeout_rate": 0.5208333333333334,
+     "train_success": 0.17
+    },
+    {
+     "timesteps": 100000,
+     "success_rate": 0.10416666666666667,
+     "length_ratio": 3.122903063832392,
+     "j_ratio": 2.76445717312435,
+     "deadlock_rate": 0.5208333333333334,
+     "timeout_rate": 0.375,
+     "train_success": 0.1
+    },
+    {
+     "timesteps": 150000,
+     "success_rate": 0.16666666666666666,
+     "length_ratio": 2.6819995134094494,
+     "j_ratio": 2.403262471114103,
+     "deadlock_rate": 0.5833333333333334,
+     "timeout_rate": 0.25,
+     "train_success": 0.24
+    },
+    {
+     "timesteps": 200000,
+     "success_rate": 0.22916666666666666,
+     "length_ratio": 2.183868487216449,
+     "j_ratio": 2.257471976690395,
+     "deadlock_rate": 0.4583333333333333,
+     "timeout_rate": 0.3125,
+     "train_success": 0.32
+    },
+    {
+     "timesteps": 250000,
+     "success_rate": 0.25,
+     "length_ratio": 2.9284258327352375,
+     "j_ratio": 2.8221457601036644,
+     "deadlock_rate": 0.5625,
+     "timeout_rate": 0.1875,
+     "train_success": 0.32
+    },
+    {
+     "timesteps": 300000,
+     "success_rate": 0.375,
+     "length_ratio": 2.484645491911379,
+     "j_ratio": 2.5422400373387632,
+     "deadlock_rate": 0.4791666666666667,
+     "timeout_rate": 0.14583333333333334,
+     "train_success": 0.42
+    },
+    {
+     "timesteps": 303104,
+     "success_rate": 0.375,
+     "length_ratio": 2.9066862808130955,
+     "j_ratio": 2.923448352959755,
+     "deadlock_rate": 0.4166666666666667,
+     "timeout_rate": 0.20833333333333334,
+     "train_success": 0.45
+    }
+   ],
+   "final": {
+    "success_rate": 0.375,
+    "deadlock_rate": 0.4166666666666667,
+    "timeout_rate": 0.20833333333333334,
+    "length_ratio": 2.9066862808130955,
+    "j_ratio": 2.923448352959755,
+    "bends_agent": 6.833333333333333,
+    "bends_astar": 2.7222222222222223,
+    "ep_steps": 79.41666666666667,
+    "n_invalid": 0.0
+   }
+  },
+  {
+   "config": "const=2.0",
+   "fail_cost_mode": "const",
+   "fail_cost_const": 2.0,
+   "seed": 606060,
+   "minutes": 2.39,
+   "history": [
+    {
+     "timesteps": 50000,
+     "success_rate": 0.10416666666666667,
+     "length_ratio": 7.840326238734799,
+     "j_ratio": 7.729754453569915,
+     "deadlock_rate": 0.375,
+     "timeout_rate": 0.5208333333333334,
+     "train_success": 0.16
+    },
+    {
+     "timesteps": 100000,
+     "success_rate": 0.10416666666666667,
+     "length_ratio": 3.503586841181131,
+     "j_ratio": 3.527954924381734,
+     "deadlock_rate": 0.5,
+     "timeout_rate": 0.3958333333333333,
+     "train_success": 0.28
+    },
+    {
+     "timesteps": 150000,
+     "success_rate": 0.16666666666666666,
+     "length_ratio": 4.948606291547202,
+     "j_ratio": 4.828360404912983,
+     "deadlock_rate": 0.3333333333333333,
+     "timeout_rate": 0.5,
+     "train_success": 0.28
+    },
+    {
+     "timesteps": 200000,
+     "success_rate": 0.3541666666666667,
+     "length_ratio": 4.256670392918089,
+     "j_ratio": 4.236307027996555,
+     "deadlock_rate": 0.375,
+     "timeout_rate": 0.2708333333333333,
+     "train_success": 0.44
+    },
+    {
+     "timesteps": 250000,
+     "success_rate": 0.4375,
+     "length_ratio": 3.084064339433628,
+     "j_ratio": 3.2103298352037344,
+     "deadlock_rate": 0.3541666666666667,
+     "timeout_rate": 0.20833333333333334,
+     "train_success": 0.52
+    },
+    {
+     "timesteps": 300000,
+     "success_rate": 0.5208333333333334,
+     "length_ratio": 2.2610357615626255,
+     "j_ratio": 2.418133434864321,
+     "deadlock_rate": 0.2916666666666667,
+     "timeout_rate": 0.1875,
+     "train_success": 0.66
+    },
+    {
+     "timesteps": 303104,
+     "success_rate": 0.4583333333333333,
+     "length_ratio": 2.486255565743325,
+     "j_ratio": 2.6025755926920167,
+     "deadlock_rate": 0.3541666666666667,
+     "timeout_rate": 0.1875,
+     "train_success": 0.59
+    }
+   ],
+   "final": {
+    "success_rate": 0.4583333333333333,
+    "deadlock_rate": 0.3541666666666667,
+    "timeout_rate": 0.1875,
+    "length_ratio": 2.486255565743325,
+    "j_ratio": 2.6025755926920167,
+    "bends_agent": 7.545454545454546,
+    "bends_astar": 3.0,
+    "ep_steps": 73.39583333333333,
+    "n_invalid": 0.0
+   }
+  },
+  {
+   "config": "mode=none",
+   "fail_cost_mode": "none",
+   "fail_cost_const": null,
+   "seed": 20260919,
+   "minutes": 2.35,
+   "history": [
+    {
+     "timesteps": 50000,
+     "success_rate": 0.041666666666666664,
+     "length_ratio": 1.4196826622196719,
+     "j_ratio": 1.357858959471683,
+     "deadlock_rate": 0.4791666666666667,
+     "timeout_rate": 0.4791666666666667,
+     "train_success": 0.06
+    },
+    {
+     "timesteps": 100000,
+     "success_rate": 0.0625,
+     "length_ratio": 4.088143040701705,
+     "j_ratio": 4.148148935195387,
+     "deadlock_rate": 0.5416666666666666,
+     "timeout_rate": 0.3958333333333333,
+     "train_success": 0.08
+    },
+    {
+     "timesteps": 150000,
+     "success_rate": 0.08333333333333333,
+     "length_ratio": 2.25234385188436,
+     "j_ratio": 2.158098368250549,
+     "deadlock_rate": 0.4375,
+     "timeout_rate": 0.4791666666666667,
+     "train_success": 0.19
+    },
+    {
+     "timesteps": 200000,
+     "success_rate": 0.20833333333333334,
+     "length_ratio": 2.468287799421992,
+     "j_ratio": 2.4348004991633303,
+     "deadlock_rate": 0.4583333333333333,
+     "timeout_rate": 0.3333333333333333,
+     "train_success": 0.2
+    },
+    {
+     "timesteps": 250000,
+     "success_rate": 0.3333333333333333,
+     "length_ratio": 3.2119019329870397,
+     "j_ratio": 3.0476892566461284,
+     "deadlock_rate": 0.4166666666666667,
+     "timeout_rate": 0.25,
+     "train_success": 0.29
+    },
+    {
+     "timesteps": 300000,
+     "success_rate": 0.3958333333333333,
+     "length_ratio": 3.5384999289725614,
+     "j_ratio": 3.5429366629091343,
+     "deadlock_rate": 0.3125,
+     "timeout_rate": 0.2916666666666667,
+     "train_success": 0.46
+    },
+    {
+     "timesteps": 303104,
+     "success_rate": 0.3333333333333333,
+     "length_ratio": 2.833063193094648,
+     "j_ratio": 2.8057000426462384,
+     "deadlock_rate": 0.3541666666666667,
+     "timeout_rate": 0.3125,
+     "train_success": 0.42
+    }
+   ],
+   "final": {
+    "success_rate": 0.3333333333333333,
+    "deadlock_rate": 0.3541666666666667,
+    "timeout_rate": 0.3125,
+    "length_ratio": 2.833063193094648,
+    "j_ratio": 2.8057000426462384,
+    "bends_agent": 7.5625,
+    "bends_astar": 3.0625,
+    "ep_steps": 98.41666666666667,
+    "n_invalid": 0.0
+   }
+  },
+  {
+   "config": "mode=h_star",
+   "fail_cost_mode": "h_star",
+   "fail_cost_const": null,
+   "seed": 20260919,
+   "minutes": 2.34,
+   "history": [
+    {
+     "timesteps": 50000,
+     "success_rate": 0.10416666666666667,
+     "length_ratio": 2.3718159819039624,
+     "j_ratio": 2.3965506300599464,
+     "deadlock_rate": 0.4375,
+     "timeout_rate": 0.4583333333333333,
+     "train_success": 0.16
+    },
+    {
+     "timesteps": 100000,
+     "success_rate": 0.1875,
+     "length_ratio": 4.050891141563125,
+     "j_ratio": 3.875995278890647,
+     "deadlock_rate": 0.4583333333333333,
+     "timeout_rate": 0.3541666666666667,
+     "train_success": 0.18
+    },
+    {
+     "timesteps": 150000,
+     "success_rate": 0.22916666666666666,
+     "length_ratio": 3.2337258459889155,
+     "j_ratio": 3.2591153408296023,
+     "deadlock_rate": 0.5,
+     "timeout_rate": 0.2708333333333333,
+     "train_success": 0.24
+    },
+    {
+     "timesteps": 200000,
+     "success_rate": 0.3958333333333333,
+     "length_ratio": 2.652849442156085,
+     "j_ratio": 2.683699833234391,
+     "deadlock_rate": 0.3333333333333333,
+     "timeout_rate": 0.2708333333333333,
+     "train_success": 0.27
+    },
+    {
+     "timesteps": 250000,
+     "success_rate": 0.3541666666666667,
+     "length_ratio": 3.296857678679285,
+     "j_ratio": 3.4348660528035317,
+     "deadlock_rate": 0.375,
+     "timeout_rate": 0.2708333333333333,
+     "train_success": 0.38
+    },
+    {
+     "timesteps": 300000,
+     "success_rate": 0.3333333333333333,
+     "length_ratio": 2.9615552411068133,
+     "j_ratio": 3.0036902334023647,
+     "deadlock_rate": 0.3333333333333333,
+     "timeout_rate": 0.3333333333333333,
+     "train_success": 0.48
+    },
+    {
+     "timesteps": 303104,
+     "success_rate": 0.375,
+     "length_ratio": 2.904515856364844,
+     "j_ratio": 2.8737345817639888,
+     "deadlock_rate": 0.3333333333333333,
+     "timeout_rate": 0.2916666666666667,
+     "train_success": 0.51
+    }
+   ],
+   "final": {
+    "success_rate": 0.375,
+    "deadlock_rate": 0.3333333333333333,
+    "timeout_rate": 0.2916666666666667,
+    "length_ratio": 2.904515856364844,
+    "j_ratio": 2.8737345817639888,
+    "bends_agent": 7.722222222222222,
+    "bends_astar": 2.9444444444444446,
+    "ep_steps": 94.0625,
+    "n_invalid": 0.0
+   }
+  },
+  {
+   "config": "mode=none",
+   "fail_cost_mode": "none",
+   "fail_cost_const": null,
+   "seed": 777001,
+   "minutes": 2.37,
+   "history": [
+    {
+     "timesteps": 50000,
+     "success_rate": 0.16666666666666666,
+     "length_ratio": 4.07653082839944,
+     "j_ratio": 4.117266008477506,
+     "deadlock_rate": 0.5416666666666666,
+     "timeout_rate": 0.2916666666666667,
+     "train_success": 0.18
+    },
+    {
+     "timesteps": 100000,
+     "success_rate": 0.14583333333333334,
+     "length_ratio": 3.1035838781113276,
+     "j_ratio": 2.9224471463148527,
+     "deadlock_rate": 0.4791666666666667,
+     "timeout_rate": 0.375,
+     "train_success": 0.27
+    },
+    {
+     "timesteps": 150000,
+     "success_rate": 0.16666666666666666,
+     "length_ratio": 3.384731388584716,
+     "j_ratio": 3.294537430414172,
+     "deadlock_rate": 0.5208333333333334,
+     "timeout_rate": 0.3125,
+     "train_success": 0.28
+    },
+    {
+     "timesteps": 200000,
+     "success_rate": 0.14583333333333334,
+     "length_ratio": 2.9135090911332413,
+     "j_ratio": 2.9807751522093997,
+     "deadlock_rate": 0.4791666666666667,
+     "timeout_rate": 0.375,
+     "train_success": 0.32
+    },
+    {
+     "timesteps": 250000,
+     "success_rate": 0.2916666666666667,
+     "length_ratio": 3.5684017289230012,
+     "j_ratio": 3.5639116057586913,
+     "deadlock_rate": 0.375,
+     "timeout_rate": 0.3333333333333333,
+     "train_success": 0.4
+    },
+    {
+     "timesteps": 300000,
+     "success_rate": 0.3541666666666667,
+     "length_ratio": 3.231941519851669,
+     "j_ratio": 3.3029774501652405,
+     "deadlock_rate": 0.375,
+     "timeout_rate": 0.2708333333333333,
+     "train_success": 0.39
+    },
+    {
+     "timesteps": 303104,
+     "success_rate": 0.4166666666666667,
+     "length_ratio": 2.9985336422521662,
+     "j_ratio": 3.0149217533349093,
+     "deadlock_rate": 0.22916666666666666,
+     "timeout_rate": 0.3541666666666667,
+     "train_success": 0.4
+    }
+   ],
+   "final": {
+    "success_rate": 0.4166666666666667,
+    "deadlock_rate": 0.22916666666666666,
+    "timeout_rate": 0.3541666666666667,
+    "length_ratio": 2.9985336422521662,
+    "j_ratio": 3.0149217533349093,
+    "bends_agent": 8.25,
+    "bends_astar": 3.15,
+    "ep_steps": 101.6875,
+    "n_invalid": 0.0
+   }
+  },
+  {
+   "config": "mode=h_star",
+   "fail_cost_mode": "h_star",
+   "fail_cost_const": null,
+   "seed": 777001,
+   "minutes": 2.32,
+   "history": [
+    {
+     "timesteps": 50000,
+     "success_rate": 0.14583333333333334,
+     "length_ratio": 3.698037952714136,
+     "j_ratio": 3.23624090696232,
+     "deadlock_rate": 0.4583333333333333,
+     "timeout_rate": 0.3958333333333333,
+     "train_success": 0.17
+    },
+    {
+     "timesteps": 100000,
+     "success_rate": 0.125,
+     "length_ratio": 3.1237443873011035,
+     "j_ratio": 3.1323426002154835,
+     "deadlock_rate": 0.4583333333333333,
+     "timeout_rate": 0.4166666666666667,
+     "train_success": 0.23
+    },
+    {
+     "timesteps": 150000,
+     "success_rate": 0.1875,
+     "length_ratio": 2.652799634630713,
+     "j_ratio": 2.814870236206436,
+     "deadlock_rate": 0.3958333333333333,
+     "timeout_rate": 0.4166666666666667,
+     "train_success": 0.34
+    },
+    {
+     "timesteps": 200000,
+     "success_rate": 0.22916666666666666,
+     "length_ratio": 3.571327792030253,
+     "j_ratio": 3.7031876324272686,
+     "deadlock_rate": 0.4583333333333333,
+     "timeout_rate": 0.3125,
+     "train_success": 0.33
+    },
+    {
+     "timesteps": 250000,
+     "success_rate": 0.3958333333333333,
+     "length_ratio": 3.658880655324753,
+     "j_ratio": 3.631728196084456,
+     "deadlock_rate": 0.3333333333333333,
+     "timeout_rate": 0.2708333333333333,
+     "train_success": 0.35
+    },
+    {
+     "timesteps": 300000,
+     "success_rate": 0.3125,
+     "length_ratio": 2.9691868556645846,
+     "j_ratio": 2.994932882310465,
+     "deadlock_rate": 0.3333333333333333,
+     "timeout_rate": 0.3541666666666667,
+     "train_success": 0.54
+    },
+    {
+     "timesteps": 303104,
+     "success_rate": 0.2708333333333333,
+     "length_ratio": 3.1703199383574088,
+     "j_ratio": 3.1695623553993286,
+     "deadlock_rate": 0.375,
+     "timeout_rate": 0.3541666666666667,
+     "train_success": 0.52
+    }
+   ],
+   "final": {
+    "success_rate": 0.2708333333333333,
+    "deadlock_rate": 0.375,
+    "timeout_rate": 0.3541666666666667,
+    "length_ratio": 3.1703199383574088,
+    "j_ratio": 3.1695623553993286,
+    "bends_agent": 9.384615384615385,
+    "bends_astar": 3.1538461538461537,
+    "ep_steps": 104.47916666666667,
+    "n_invalid": 0.0
+   }
+  },
+  {
+   "config": "mode=none",
+   "fail_cost_mode": "none",
+   "fail_cost_const": null,
+   "seed": 424242,
+   "minutes": 2.4,
+   "history": [
+    {
+     "timesteps": 50000,
+     "success_rate": 0.14583333333333334,
+     "length_ratio": 3.0275157444176104,
+     "j_ratio": 2.9078743174591186,
+     "deadlock_rate": 0.4583333333333333,
+     "timeout_rate": 0.3958333333333333,
+     "train_success": 0.16
+    },
+    {
+     "timesteps": 100000,
+     "success_rate": 0.0625,
+     "length_ratio": 2.162640122920267,
+     "j_ratio": 2.3342929830337042,
+     "deadlock_rate": 0.5416666666666666,
+     "timeout_rate": 0.3958333333333333,
+     "train_success": 0.14
+    },
+    {
+     "timesteps": 150000,
+     "success_rate": 0.125,
+     "length_ratio": 2.757203605697184,
+     "j_ratio": 2.743619816569455,
+     "deadlock_rate": 0.4791666666666667,
+     "timeout_rate": 0.3958333333333333,
+     "train_success": 0.21
+    },
+    {
+     "timesteps": 200000,
+     "success_rate": 0.25,
+     "length_ratio": 2.9764908252029234,
+     "j_ratio": 2.8427965246797395,
+     "deadlock_rate": 0.4166666666666667,
+     "timeout_rate": 0.3333333333333333,
+     "train_success": 0.28
+    },
+    {
+     "timesteps": 250000,
+     "success_rate": 0.3958333333333333,
+     "length_ratio": 2.9729386499795076,
+     "j_ratio": 2.8280258990829945,
+     "deadlock_rate": 0.25,
+     "timeout_rate": 0.3541666666666667,
+     "train_success": 0.29
+    },
+    {
+     "timesteps": 300000,
+     "success_rate": 0.4583333333333333,
+     "length_ratio": 2.544378994683107,
+     "j_ratio": 2.5626631893969534,
+     "deadlock_rate": 0.3125,
+     "timeout_rate": 0.22916666666666666,
+     "train_success": 0.46
+    },
+    {
+     "timesteps": 303104,
+     "success_rate": 0.4166666666666667,
+     "length_ratio": 2.9992825782891854,
+     "j_ratio": 2.9310536234611453,
+     "deadlock_rate": 0.3125,
+     "timeout_rate": 0.2708333333333333,
+     "train_success": 0.49
+    }
+   ],
+   "final": {
+    "success_rate": 0.4166666666666667,
+    "deadlock_rate": 0.3125,
+    "timeout_rate": 0.2708333333333333,
+    "length_ratio": 2.9992825782891854,
+    "j_ratio": 2.9310536234611453,
+    "bends_agent": 7.65,
+    "bends_astar": 2.95,
+    "ep_steps": 88.02083333333333,
+    "n_invalid": 0.0
+   }
+  },
+  {
+   "config": "mode=h_star",
+   "fail_cost_mode": "h_star",
+   "fail_cost_const": null,
+   "seed": 424242,
+   "minutes": 2.4,
+   "history": [
+    {
+     "timesteps": 50000,
+     "success_rate": 0.14583333333333334,
+     "length_ratio": 3.5735193660363436,
+     "j_ratio": 3.322838734694545,
+     "deadlock_rate": 0.4375,
+     "timeout_rate": 0.4166666666666667,
+     "train_success": 0.14
+    },
+    {
+     "timesteps": 100000,
+     "success_rate": 0.08333333333333333,
+     "length_ratio": 4.151092072917217,
+     "j_ratio": 4.206128678251887,
+     "deadlock_rate": 0.5833333333333334,
+     "timeout_rate": 0.3333333333333333,
+     "train_success": 0.26
+    },
+    {
+     "timesteps": 150000,
+     "success_rate": 0.20833333333333334,
+     "length_ratio": 3.2235406092007794,
+     "j_ratio": 3.2227923931425964,
+     "deadlock_rate": 0.5,
+     "timeout_rate": 0.2916666666666667,
+     "train_success": 0.28
+    },
+    {
+     "timesteps": 200000,
+     "success_rate": 0.3125,
+     "length_ratio": 2.9849376776078116,
+     "j_ratio": 3.0220279267194434,
+     "deadlock_rate": 0.3333333333333333,
+     "timeout_rate": 0.3541666666666667,
+     "train_success": 0.37
+    },
+    {
+     "timesteps": 250000,
+     "success_rate": 0.3333333333333333,
+     "length_ratio": 2.9342873559791918,
+     "j_ratio": 2.923870706872686,
+     "deadlock_rate": 0.3333333333333333,
+     "timeout_rate": 0.3333333333333333,
+     "train_success": 0.37
+    },
+    {
+     "timesteps": 300000,
+     "success_rate": 0.5208333333333334,
+     "length_ratio": 3.3183086532364228,
+     "j_ratio": 3.21598033165308,
+     "deadlock_rate": 0.25,
+     "timeout_rate": 0.22916666666666666,
+     "train_success": 0.48
+    },
+    {
+     "timesteps": 303104,
+     "success_rate": 0.5,
+     "length_ratio": 2.9618886224170047,
+     "j_ratio": 2.9484845699572144,
+     "deadlock_rate": 0.22916666666666666,
+     "timeout_rate": 0.2708333333333333,
+     "train_success": 0.54
+    }
+   ],
+   "final": {
+    "success_rate": 0.5,
+    "deadlock_rate": 0.22916666666666666,
+    "timeout_rate": 0.2708333333333333,
+    "length_ratio": 2.9618886224170047,
+    "j_ratio": 2.9484845699572144,
+    "bends_agent": 8.166666666666666,
+    "bends_astar": 3.0,
+    "ep_steps": 87.29166666666667,
+    "n_invalid": 0.0
+   }
+  },
+  {
+   "config": "mode=none",
+   "fail_cost_mode": "none",
+   "fail_cost_const": null,
+   "seed": 90210,
+   "minutes": 2.3,
+   "history": [
+    {
+     "timesteps": 50000,
+     "success_rate": 0.041666666666666664,
+     "length_ratio": 6.399991608805719,
+     "j_ratio": 4.8843378103101704,
+     "deadlock_rate": 0.5416666666666666,
+     "timeout_rate": 0.4166666666666667,
+     "train_success": 0.18
+    },
+    {
+     "timesteps": 100000,
+     "success_rate": 0.08333333333333333,
+     "length_ratio": 3.969944678157322,
+     "j_ratio": 3.687565466067964,
+     "deadlock_rate": 0.5625,
+     "timeout_rate": 0.3541666666666667,
+     "train_success": 0.19
+    },
+    {
+     "timesteps": 150000,
+     "success_rate": 0.14583333333333334,
+     "length_ratio": 2.724290827626873,
+     "j_ratio": 2.9029153757529946,
+     "deadlock_rate": 0.4375,
+     "timeout_rate": 0.4166666666666667,
+     "train_success": 0.13
+    },
+    {
+     "timesteps": 200000,
+     "success_rate": 0.22916666666666666,
+     "length_ratio": 4.292485208783947,
+     "j_ratio": 4.228658352870772,
+     "deadlock_rate": 0.625,
+     "timeout_rate": 0.14583333333333334,
+     "train_success": 0.24
+    },
+    {
+     "timesteps": 250000,
+     "success_rate": 0.3541666666666667,
+     "length_ratio": 3.3648585302326794,
+     "j_ratio": 3.4552061471291453,
+     "deadlock_rate": 0.4791666666666667,
+     "timeout_rate": 0.16666666666666666,
+     "train_success": 0.39
+    },
+    {
+     "timesteps": 300000,
+     "success_rate": 0.4166666666666667,
+     "length_ratio": 3.250526338666402,
+     "j_ratio": 3.2130591872480743,
+     "deadlock_rate": 0.3125,
+     "timeout_rate": 0.2708333333333333,
+     "train_success": 0.44
+    },
+    {
+     "timesteps": 303104,
+     "success_rate": 0.375,
+     "length_ratio": 2.689946324930682,
+     "j_ratio": 2.6609484860124315,
+     "deadlock_rate": 0.375,
+     "timeout_rate": 0.25,
+     "train_success": 0.41
+    }
+   ],
+   "final": {
+    "success_rate": 0.375,
+    "deadlock_rate": 0.375,
+    "timeout_rate": 0.25,
+    "length_ratio": 2.689946324930682,
+    "j_ratio": 2.6609484860124315,
+    "bends_agent": 7.777777777777778,
+    "bends_astar": 3.111111111111111,
+    "ep_steps": 85.75,
+    "n_invalid": 0.0
+   }
+  },
+  {
+   "config": "mode=h_star",
+   "fail_cost_mode": "h_star",
+   "fail_cost_const": null,
+   "seed": 90210,
+   "minutes": 2.25,
+   "history": [
+    {
+     "timesteps": 50000,
+     "success_rate": 0.08333333333333333,
+     "length_ratio": 2.60536695058923,
+     "j_ratio": 2.6467057080283563,
+     "deadlock_rate": 0.3333333333333333,
+     "timeout_rate": 0.5833333333333334,
+     "train_success": 0.24
+    },
+    {
+     "timesteps": 100000,
+     "success_rate": 0.25,
+     "length_ratio": 2.563649184985888,
+     "j_ratio": 2.6292446206004434,
+     "deadlock_rate": 0.375,
+     "timeout_rate": 0.375,
+     "train_success": 0.24
+    },
+    {
+     "timesteps": 150000,
+     "success_rate": 0.25,
+     "length_ratio": 3.1145760949644608,
+     "j_ratio": 3.101516146745156,
+     "deadlock_rate": 0.4375,
+     "timeout_rate": 0.3125,
+     "train_success": 0.21
+    },
+    {
+     "timesteps": 200000,
+     "success_rate": 0.3541666666666667,
+     "length_ratio": 3.5980612873091617,
+     "j_ratio": 3.6589434655345667,
+     "deadlock_rate": 0.4375,
+     "timeout_rate": 0.20833333333333334,
+     "train_success": 0.41
+    },
+    {
+     "timesteps": 250000,
+     "success_rate": 0.3958333333333333,
+     "length_ratio": 3.099128992733954,
+     "j_ratio": 3.154907183115044,
+     "deadlock_rate": 0.2708333333333333,
+     "timeout_rate": 0.3333333333333333,
+     "train_success": 0.41
+    },
+    {
+     "timesteps": 300000,
+     "success_rate": 0.3541666666666667,
+     "length_ratio": 3.1686376786621606,
+     "j_ratio": 3.287415604553436,
+     "deadlock_rate": 0.3541666666666667,
+     "timeout_rate": 0.2916666666666667,
+     "train_success": 0.45
+    },
+    {
+     "timesteps": 303104,
+     "success_rate": 0.375,
+     "length_ratio": 2.875427337198387,
+     "j_ratio": 2.956018810326175,
+     "deadlock_rate": 0.2916666666666667,
+     "timeout_rate": 0.3333333333333333,
+     "train_success": 0.4
+    }
+   ],
+   "final": {
+    "success_rate": 0.375,
+    "deadlock_rate": 0.2916666666666667,
+    "timeout_rate": 0.3333333333333333,
+    "length_ratio": 2.875427337198387,
+    "j_ratio": 2.956018810326175,
+    "bends_agent": 7.333333333333333,
+    "bends_astar": 2.7777777777777777,
+    "ep_steps": 99.5,
+    "n_invalid": 0.0
+   }
+  },
+  {
+   "config": "mode=none",
+   "fail_cost_mode": "none",
+   "fail_cost_const": null,
+   "seed": 13579,
+   "minutes": 2.37,
+   "history": [
+    {
+     "timesteps": 50000,
+     "success_rate": 0.08333333333333333,
+     "length_ratio": 3.569692950185655,
+     "j_ratio": 3.4840407340861512,
+     "deadlock_rate": 0.2916666666666667,
+     "timeout_rate": 0.625,
+     "train_success": 0.11
+    },
+    {
+     "timesteps": 100000,
+     "success_rate": 0.16666666666666666,
+     "length_ratio": 3.695426385189464,
+     "j_ratio": 3.668092679940292,
+     "deadlock_rate": 0.4791666666666667,
+     "timeout_rate": 0.3541666666666667,
+     "train_success": 0.14
+    },
+    {
+     "timesteps": 150000,
+     "success_rate": 0.125,
+     "length_ratio": 3.3715816385948396,
+     "j_ratio": 3.302877961693381,
+     "deadlock_rate": 0.4375,
+     "timeout_rate": 0.4375,
+     "train_success": 0.18
+    },
+    {
+     "timesteps": 200000,
+     "success_rate": 0.3333333333333333,
+     "length_ratio": 2.9143584868874166,
+     "j_ratio": 2.9880205016580934,
+     "deadlock_rate": 0.4791666666666667,
+     "timeout_rate": 0.1875,
+     "train_success": 0.38
+    },
+    {
+     "timesteps": 250000,
+     "success_rate": 0.4375,
+     "length_ratio": 2.667546599625507,
+     "j_ratio": 2.6293712869530035,
+     "deadlock_rate": 0.3541666666666667,
+     "timeout_rate": 0.20833333333333334,
+     "train_success": 0.41
+    },
+    {
+     "timesteps": 300000,
+     "success_rate": 0.4583333333333333,
+     "length_ratio": 3.638897214085769,
+     "j_ratio": 3.6185974365207842,
+     "deadlock_rate": 0.375,
+     "timeout_rate": 0.16666666666666666,
+     "train_success": 0.53
+    },
+    {
+     "timesteps": 303104,
+     "success_rate": 0.5,
+     "length_ratio": 2.868597332373112,
+     "j_ratio": 2.932506206405046,
+     "deadlock_rate": 0.3333333333333333,
+     "timeout_rate": 0.16666666666666666,
+     "train_success": 0.58
+    }
+   ],
+   "final": {
+    "success_rate": 0.5,
+    "deadlock_rate": 0.3333333333333333,
+    "timeout_rate": 0.16666666666666666,
+    "length_ratio": 2.868597332373112,
+    "j_ratio": 2.932506206405046,
+    "bends_agent": 7.791666666666667,
+    "bends_astar": 2.9583333333333335,
+    "ep_steps": 77.95833333333333,
+    "n_invalid": 0.0
+   }
+  },
+  {
+   "config": "mode=h_star",
+   "fail_cost_mode": "h_star",
+   "fail_cost_const": null,
+   "seed": 13579,
+   "minutes": 2.28,
+   "history": [
+    {
+     "timesteps": 50000,
+     "success_rate": 0.08333333333333333,
+     "length_ratio": 4.492732634658118,
+     "j_ratio": 3.8953615773607764,
+     "deadlock_rate": 0.375,
+     "timeout_rate": 0.5416666666666666,
+     "train_success": 0.1
+    },
+    {
+     "timesteps": 100000,
+     "success_rate": 0.14583333333333334,
+     "length_ratio": 4.104061119097143,
+     "j_ratio": 3.8607753682080017,
+     "deadlock_rate": 0.5416666666666666,
+     "timeout_rate": 0.3125,
+     "train_success": 0.23
+    },
+    {
+     "timesteps": 150000,
+     "success_rate": 0.1875,
+     "length_ratio": 1.4639627932811228,
+     "j_ratio": 1.5316827965661137,
+     "deadlock_rate": 0.5625,
+     "timeout_rate": 0.25,
+     "train_success": 0.24
+    },
+    {
+     "timesteps": 200000,
+     "success_rate": 0.4583333333333333,
+     "length_ratio": 3.9634972374115303,
+     "j_ratio": 3.977930011058457,
+     "deadlock_rate": 0.2708333333333333,
+     "timeout_rate": 0.2708333333333333,
+     "train_success": 0.5
+    },
+    {
+     "timesteps": 250000,
+     "success_rate": 0.375,
+     "length_ratio": 3.020435534773764,
+     "j_ratio": 3.0816756670855217,
+     "deadlock_rate": 0.2916666666666667,
+     "timeout_rate": 0.3333333333333333,
+     "train_success": 0.41
+    },
+    {
+     "timesteps": 300000,
+     "success_rate": 0.5,
+     "length_ratio": 3.0782845235180862,
+     "j_ratio": 3.06280877368151,
+     "deadlock_rate": 0.25,
+     "timeout_rate": 0.25,
+     "train_success": 0.43
+    },
+    {
+     "timesteps": 303104,
+     "success_rate": 0.5,
+     "length_ratio": 2.520046671260541,
+     "j_ratio": 2.6498734638385275,
+     "deadlock_rate": 0.16666666666666666,
+     "timeout_rate": 0.3333333333333333,
+     "train_success": 0.45
+    }
+   ],
+   "final": {
+    "success_rate": 0.5,
+    "deadlock_rate": 0.16666666666666666,
+    "timeout_rate": 0.3333333333333333,
+    "length_ratio": 2.520046671260541,
+    "j_ratio": 2.6498734638385275,
+    "bends_agent": 7.958333333333333,
+    "bends_astar": 2.7916666666666665,
+    "ep_steps": 95.08333333333333,
+    "n_invalid": 0.0
+   }
+  },
+  {
+   "config": "mode=none",
+   "fail_cost_mode": "none",
+   "fail_cost_const": null,
+   "seed": 606060,
+   "minutes": 2.33,
+   "history": [
+    {
+     "timesteps": 50000,
+     "success_rate": 0.125,
+     "length_ratio": 3.410130798397516,
+     "j_ratio": 3.443521428991106,
+     "deadlock_rate": 0.375,
+     "timeout_rate": 0.5,
+     "train_success": 0.22
+    },
+    {
+     "timesteps": 100000,
+     "success_rate": 0.14583333333333334,
+     "length_ratio": 2.280368471256414,
+     "j_ratio": 2.211389501745845,
+     "deadlock_rate": 0.4375,
+     "timeout_rate": 0.4166666666666667,
+     "train_success": 0.21
+    },
+    {
+     "timesteps": 150000,
+     "success_rate": 0.25,
+     "length_ratio": 3.27972312942981,
+     "j_ratio": 3.21226135567216,
+     "deadlock_rate": 0.4791666666666667,
+     "timeout_rate": 0.2708333333333333,
+     "train_success": 0.25
+    },
+    {
+     "timesteps": 200000,
+     "success_rate": 0.375,
+     "length_ratio": 3.637738155776955,
+     "j_ratio": 3.5288682875939177,
+     "deadlock_rate": 0.3958333333333333,
+     "timeout_rate": 0.22916666666666666,
+     "train_success": 0.38
+    },
+    {
+     "timesteps": 250000,
+     "success_rate": 0.3541666666666667,
+     "length_ratio": 3.1866318879026436,
+     "j_ratio": 3.2499956818750606,
+     "deadlock_rate": 0.4166666666666667,
+     "timeout_rate": 0.22916666666666666,
+     "train_success": 0.41
+    },
+    {
+     "timesteps": 300000,
+     "success_rate": 0.5625,
+     "length_ratio": 2.702632364630062,
+     "j_ratio": 2.724350240353706,
+     "deadlock_rate": 0.3333333333333333,
+     "timeout_rate": 0.10416666666666667,
+     "train_success": 0.63
+    },
+    {
+     "timesteps": 303104,
+     "success_rate": 0.4791666666666667,
+     "length_ratio": 2.806582796989376,
+     "j_ratio": 2.829470699928336,
+     "deadlock_rate": 0.3541666666666667,
+     "timeout_rate": 0.16666666666666666,
+     "train_success": 0.56
+    }
+   ],
+   "final": {
+    "success_rate": 0.4791666666666667,
+    "deadlock_rate": 0.3541666666666667,
+    "timeout_rate": 0.16666666666666666,
+    "length_ratio": 2.806582796989376,
+    "j_ratio": 2.829470699928336,
+    "bends_agent": 7.782608695652174,
+    "bends_astar": 2.9565217391304346,
+    "ep_steps": 76.1875,
+    "n_invalid": 0.0
+   }
+  },
+  {
+   "config": "mode=h_star",
+   "fail_cost_mode": "h_star",
+   "fail_cost_const": null,
+   "seed": 606060,
+   "minutes": 2.39,
+   "history": [
+    {
+     "timesteps": 50000,
+     "success_rate": 0.0625,
+     "length_ratio": 2.920807405614468,
+     "j_ratio": 2.748909581266536,
+     "deadlock_rate": 0.375,
+     "timeout_rate": 0.5625,
+     "train_success": 0.09
+    },
+    {
+     "timesteps": 100000,
+     "success_rate": 0.14583333333333334,
+     "length_ratio": 4.311480917858935,
+     "j_ratio": 4.106022352094834,
+     "deadlock_rate": 0.4583333333333333,
+     "timeout_rate": 0.3958333333333333,
+     "train_success": 0.19
+    },
+    {
+     "timesteps": 150000,
+     "success_rate": 0.125,
+     "length_ratio": 3.3618691985317315,
+     "j_ratio": 3.3412903443555906,
+     "deadlock_rate": 0.4166666666666667,
+     "timeout_rate": 0.4583333333333333,
+     "train_success": 0.24
+    },
+    {
+     "timesteps": 200000,
+     "success_rate": 0.22916666666666666,
+     "length_ratio": 3.177415487005308,
+     "j_ratio": 3.153688690607219,
+     "deadlock_rate": 0.4166666666666667,
+     "timeout_rate": 0.3541666666666667,
+     "train_success": 0.3
+    },
+    {
+     "timesteps": 250000,
+     "success_rate": 0.3541666666666667,
+     "length_ratio": 3.259523926814382,
+     "j_ratio": 3.251239811128985,
+     "deadlock_rate": 0.3125,
+     "timeout_rate": 0.3333333333333333,
+     "train_success": 0.4
+    },
+    {
+     "timesteps": 300000,
+     "success_rate": 0.4583333333333333,
+     "length_ratio": 3.2563184286253275,
+     "j_ratio": 3.2192734625329815,
+     "deadlock_rate": 0.22916666666666666,
+     "timeout_rate": 0.3125,
+     "train_success": 0.5
+    },
+    {
+     "timesteps": 303104,
+     "success_rate": 0.5,
+     "length_ratio": 2.9600777065072563,
+     "j_ratio": 2.9204339762165907,
+     "deadlock_rate": 0.3125,
+     "timeout_rate": 0.1875,
+     "train_success": 0.51
+    }
+   ],
+   "final": {
+    "success_rate": 0.5,
+    "deadlock_rate": 0.3125,
+    "timeout_rate": 0.1875,
+    "length_ratio": 2.9600777065072563,
+    "j_ratio": 2.9204339762165907,
+    "bends_agent": 8.25,
+    "bends_astar": 3.0,
+    "ep_steps": 79.5625,
+    "n_invalid": 0.0
+   }
+  }
+ ]
+}
