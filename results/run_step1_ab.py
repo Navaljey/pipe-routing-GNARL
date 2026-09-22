@@ -141,8 +141,8 @@ def main():
     for seed in a.seeds:
         d = os.path.join(root, f"{tag}_s{seed}")
         os.makedirs(d, exist_ok=True)
-        for f in os.listdir(cache_dir):        # 시나리오 캐시 공유 (생성 84초)
-            if f.startswith("g3_scen_") and not os.path.exists(os.path.join(d, f)):
+        for f in os.listdir(cache_dir):        # 시나리오 캐시(84초) · 순위 라벨 캐시(32분) 공유
+            if f.startswith(("g3_scen_", "step1_rank_")) and not os.path.exists(os.path.join(d, f)):
                 os.symlink(os.path.join(cache_dir, f), os.path.join(d, f))
         cmd = [sys.executable, os.path.abspath(__file__), "--child", "--arm", a.arm,
                "--seed", str(seed), "--steps", str(a.steps),
@@ -159,7 +159,7 @@ def main():
             p = subprocess.run(cmd, cwd=d, stdout=lg, stderr=subprocess.STDOUT, env=env)
         # 새로 만들어진 캐시는 공유 디렉터리로 올린다
         for f in os.listdir(d):
-            if f.startswith("g3_scen_") and not os.path.islink(os.path.join(d, f)):
+            if f.startswith(("g3_scen_", "step1_rank_")) and not os.path.islink(os.path.join(d, f)):
                 os.replace(os.path.join(d, f), os.path.join(cache_dir, f))
                 os.symlink(os.path.join(cache_dir, f), os.path.join(d, f))
         if p.returncode != 0:

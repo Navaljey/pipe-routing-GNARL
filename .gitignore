@@ -19,3 +19,4 @@ checkpoint_step1*
 
 # A/B 실행 작업 디렉터리 (체크포인트·로그·시나리오 캐시)
 _ab/
+step1_rank_*.npz
