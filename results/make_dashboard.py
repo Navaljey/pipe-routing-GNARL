@@ -30,7 +30,7 @@ for kv in a.set:
 ns = {"__name__": "__main__", "USE_WANDB": False, "run": None}
 exec(compile("import os, sys, time", "<prelude>", "exec"), ns)
 for tag, src in load_cells(NB):
-    if tag in ("3.", "4.", "5.", "6.", "7.", "8."):
+    if tag in ("3.", "4.", "5.", "6.", "7.", "7b.", "8."):
         with contextlib.redirect_stdout(io.StringIO()):
             exec(compile(src, f"<nb:{tag}>", "exec"), ns)
         if tag == "3.":
