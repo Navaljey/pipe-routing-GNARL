@@ -17,7 +17,7 @@ import argparse, io, json, contextlib, os, re, subprocess, sys, time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 NB = os.path.join(HERE, "..", "step1_train.ipynb")
-BASE_CELLS = ["3.", "4.", "5.", "6.", "7.", "8."]   # 1.(pip) 1b.(Drive) 2.(wandb) 는 건너뛴다
+BASE_CELLS = ["3.", "4.", "5.", "6.", "7.", "7b.", "8."]  # 1.(pip) 1b.(Drive) 2.(wandb) 는 건너뛴다
 TRAIN_CELL = "9."
 
 # §0 / §19-4 의 대응 손잡이 조합
@@ -40,6 +40,10 @@ ARMS = {
                gnarl_unfreeze_at=100_000),
     # A+B. tau 고정(0.05) + h 학습 — 하한과 고정의 차이(S1-N1)를 가른다
     "AB": dict(gnarl_freeze_h=False, gnarl_learn_tau=False, gnarl_tau_min=0.05),
+    # ---- §21 h 순위 정칙항 sweep. 바탕은 A + lr=1e-4 (§20 의 최선) ----
+    # 강도는 --set h_rank_batches=N 으로 준다 (0 = 대조군).
+    "L":  dict(gnarl_freeze_h=False, gnarl_learn_tau=True, gnarl_tau_min=0.05,
+               learning_rate=1e-4, h_rank_metrics=True),
 }
 
 
