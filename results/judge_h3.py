@@ -28,12 +28,14 @@ for k, nm, good in KEYS:
     if not all(k in c[s] and k in h3[s] for s in seeds):
         continue
     a = [c[s][k] for s in seeds]; b = [h3[s][k] for s in seeds]
-    dd = [y - x for x, y in zip(a, b)]
+    dd = [y - x for x, y in zip(a, b) if x == x and y == y]   # NaN(해당 에피소드 없음) 시드는 뺀다
+    if len(dd) < 2:
+        print(f"{nm:<22}  (유효 시드 {len(dd)}개 — 판정 불가)"); continue
     m, e = mean(dd), se(dd)
-    sig = abs(m) >= 2 * e
+    sig = m != 0 and abs(m) >= 2 * e
     verdict = ("개선" if m * good > 0 else "악화") if sig else "노이즈"
     out["rows"][k] = dict(ctrl=a, h3=b, delta=dd, mean=m, se=e, verdict=verdict)
-    print(f"{nm:<22}{mean(a):9.3f}{mean(b):9.3f}{m:+9.3f}{e:8.3f}   {verdict}  {['%+.3f' % x for x in dd]}")
+    print(f"{nm:<22}{mean([x for x in a if x == x]):9.3f}{mean([y for y in b if y == y]):9.3f}{m:+9.3f}{e:8.3f}   {verdict}  {['%+.3f' % x for x in dd]}")
 print(f"A* 진입 구간 스텝: {mean(c[s]['steps_approach_base'] for s in seeds):.1f}")
 R = out["rows"]
 jr, ap, sc = R["j_ratio"]["verdict"], R["steps_approach"]["verdict"], R["success_rate"]["verdict"]
