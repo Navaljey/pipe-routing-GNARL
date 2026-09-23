@@ -54,6 +54,7 @@ def run_episodes(ns, model):
         goal = np.asarray(env.goal, dtype=int)
         d = lambda p: int(np.abs(np.asarray(p, dtype=int) - goal).sum())
         traj, occs, dists, vert = [tuple(env.pos)], [occupancy(env.pad, env.pos, PAD)], [d(env.pos)], []
+        gJ, turn = [0.0], []                       # 스텝별 누적 J · 엘보 발생 여부
         done, info = False, {}
         while not done:
             m = env.action_masks()
@@ -62,11 +63,22 @@ def run_episodes(ns, model):
                 dist = model.policy.get_distribution(ot, action_masks=m[None])
                 a = int(dist.get_actions(deterministic=True)[0])
             vert.append(0 if a == STAY else int(DIRS26[a][2] != 0))
+            turn.append(int(a != STAY and a != env.dir))
             obs, r, term, trunc, info = env.step(a)
+            gJ.append(float(env.g_J))
             traj.append(tuple(env.pos)); occs.append(occupancy(env.pad, env.pos, PAD)); dists.append(d(env.pos))
             done = term or trunc
         base = env.base
         dists = np.asarray(dists); occs = np.asarray(occs); vert = np.asarray(vert)
+        # --- 구간 분해: 목표 진입 구간(맨해튼 <= NEAR_GOAL)에 **처음 들어간 시점**에서 자른다 ---
+        #     A* 경로도 같은 규칙으로 잘라, 초과 J 가 순항 구간/진입 구간 중 어디서 생기는지 본다.
+        gJ = np.asarray(gJ); turn = np.asarray(turn)
+        ent = int(np.argmax(dists <= NEAR_GOAL)) if (dists <= NEAR_GOAL).any() else len(dists) - 1
+        bst = base["states"] if base else []
+        bd = np.array([int(np.abs(np.asarray(p_, dtype=int) - goal).sum()) for (p_, _, _, _) in bst]) if base else None
+        bent = int(np.argmax(bd <= NEAR_GOAL)) if (base and (bd <= NEAR_GOAL).any()) else 0
+        b_g = np.array([g_ for (_, _, _, g_) in bst]) if base else None
+        b_turn = np.array([int(b[1] != a_[1]) for a_, b in zip(bst[:-1], bst[1:])]) if base else None
         prog = np.diff(dists)                      # <0 이면 목표에 가까워진 스텝
         waste = prog >= 0                          # 진전이 없는 스텝 = '낭비'
         rows.append(dict(
@@ -87,6 +99,17 @@ def run_episodes(ns, model):
             if base else float("nan"),
             astar_vert=float(np.mean([int(b[0][2] != a_[0][2]) for a_, b in
                                       zip(base["states"][:-1], base["states"][1:])])) if base else float("nan"),
+            # 구간 분해 (성공 에피소드에서 의미가 있다)
+            J_cruise=float(gJ[ent]), J_approach=float(gJ[-1] - gJ[ent]),
+            J_cruise_base=float(b_g[bent]) if base else float("nan"),
+            J_approach_base=float(base["J"] - b_g[bent]) if base else float("nan"),
+            elb_cruise=int(turn[:ent].sum()), elb_approach=int(turn[ent:].sum()),
+            elb_cruise_base=int(b_turn[:bent].sum()) if base else -1,
+            elb_approach_base=int(b_turn[bent:].sum()) if base else -1,
+            steps_approach=int(len(dists) - 1 - ent),
+            steps_approach_base=int(len(bst) - 1 - bent) if base else -1,
+            reentries=int(np.sum((dists[1:] <= NEAR_GOAL) & (dists[:-1] > NEAR_GOAL))),
+            j_base=float(base["J"]) if base else float("nan"), j_agent=float(gJ[-1]),
         ))
     return rows
 
