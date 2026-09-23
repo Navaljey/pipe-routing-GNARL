@@ -57,6 +57,8 @@ def main():
         fin = [r["final"] for r in rs]
         print(f"{'final':>9} | {mean([f['success_rate'] for f in fin]):>9.3f} ± "
               f"{se([f['success_rate'] for f in fin]):<6.3f} | "
+              f"j_ratio {mean([f.get('j_ratio', float('nan')) for f in fin]):.2f} | "
+              f"elbow {mean([f.get('elbow_ratio', float('nan')) for f in fin]):.2f} | "
               f"length_ratio {mean([f['length_ratio'] for f in fin]):.2f} | "
               f"deadlock {mean([f['deadlock_rate'] for f in fin]):.3f} | "
               f"timeout {mean([f['timeout_rate'] for f in fin]):.3f} | "

@@ -16,6 +16,8 @@ from run_step1_ab import load_cells, NB, ARMS  # noqa: E402
 ap = argparse.ArgumentParser()
 ap.add_argument("--arm", default="A")
 ap.add_argument("--set", action="append", default=[])
+ap.add_argument("--fresh-eval", action="store_true",
+                help="체크포인트를 현재 코드로 다시 평가해 이력 끝에 붙인다 (지표 정의가 바뀐 뒤 재판정용)")
 a = ap.parse_args()
 
 override = dict(ARMS.get(a.arm, {}))
@@ -45,6 +47,13 @@ for tag, src in load_cells(NB):
         hist = json.load(open("step1_history.json"))
         ns["HISTORY"][:] = hist["history"]
         ns["BEST"].update(hist["best"])
+        if a.fresh_eval:
+            m = ns["evaluate_routing"](ns["model"], ns["EVAL_POOL"])
+            m["timesteps"] = int(ns["model"].num_timesteps)
+            m["h_mae_kg"] = ns["h_mae_kg"](ns["model"])
+            m.update(ns["h_rank_metrics"](ns["model"].policy))
+            ns["HISTORY"].append(m)
+            print(f"현재 코드로 재평가 → 이력 끝에 추가 ({m['timesteps']:,} 스텝)")
         print(f"평가 이력 {len(ns['HISTORY'])}개 로드 "
               f"({ns['HISTORY'][0]['timesteps']:,} ~ {ns['HISTORY'][-1]['timesteps']:,} 스텝)\n")
         exec(compile(src, "<nb:10>", "exec"), ns)
