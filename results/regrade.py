@@ -70,7 +70,8 @@ def main():
         return
     keys = ["success_rate", "j_ratio", "deadlock_rate", "elbow_ratio", "j_ratio_all", "length_ratio",
             "succ_easy", "succ_mid", "succ_hard", "jr_easy", "jr_mid", "jr_hard", "hard_gap",
-            "rank_top1", "rank_spearman"]
+            "rank_top1", "rank_spearman",
+            "steps_approach", "steps_approach_base", "reentries", "reentries_fail"]
     agg = {k: (mean([r[k] for r in rs]), se([r[k] for r in rs])) for k in keys}
     print(f"\n=== §7 재판정 ({len(rs)}시드 평균 ± SE) ===")
     for nm, k, thr, op in (("success", "success_rate", cfg.grad_success, "≥"),
@@ -89,6 +90,8 @@ def main():
           f"어려움 {agg['jr_hard'][0]:.3f}")
     print(f"  [계기판] 시드별 어려움 경보: " + " ".join(str(int(r['alarm_hard'])) for r in rs))
     print(f"  [계기판] top-1 {agg['rank_top1'][0]:.3f} · rho {agg['rank_spearman'][0]:+.3f}")
+    print(f"  [방향] 진입 구간 스텝 {agg['steps_approach'][0]:.1f} ± {agg['steps_approach'][1]:.1f} "
+          f"(A* {agg['steps_approach_base'][0]:.1f}) · 재진입 성공 {agg['reentries'][0]:.2f} / 실패 {agg['reentries_fail'][0]:.2f}")
     if a.out:
         json.dump(dict(per_run=res, agg=agg), open(a.out, "w"), ensure_ascii=False, indent=1, default=float)
         print("→", a.out)
