@@ -1,0 +1,18 @@
+{
+ "astar_path": {
+  "groups": 17251,
+  "tie_exact": 0.029447568256912644,
+  "gap_lt_0p1kg": 0.03814271636426874,
+  "gap_lt_0p5kg": 0.06022839255695322,
+  "median_gap_kg": 7.009349822998047,
+  "top1_ceiling_if_ties_random": 0.9852085869418197
+ },
+ "off_path": {
+  "groups": 11776,
+  "tie_exact": 0.03965692934782609,
+  "gap_lt_0p1kg": 0.05247961956521739,
+  "gap_lt_0p5kg": 0.11574388586956522,
+  "median_gap_kg": 3.8000001907348633,
+  "top1_ceiling_if_ties_random": 0.9799097033514492
+ }
+}
