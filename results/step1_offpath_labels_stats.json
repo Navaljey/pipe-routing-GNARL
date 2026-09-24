@@ -1,0 +1,14 @@
+{
+ "episodes": 2000,
+ "decisions": 40075,
+ "offpath_decisions": 33299,
+ "offpath_share": 0.8309170305676856,
+ "unique_offpath": 32027,
+ "scenarios_with_offpath": 500,
+ "picked": 11776,
+ "label_groups": 11776,
+ "label_dropped": 0,
+ "label_rows": 119285,
+ "pairs_astar": 947074,
+ "pairs_total": 1558757
+}
