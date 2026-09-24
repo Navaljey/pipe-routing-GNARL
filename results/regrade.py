@@ -35,7 +35,13 @@ def build_ns(override):
 
 
 def se(v):
+    v = [x for x in v if x == x]                       # NaN(해당 에피소드 없음) 은 뺀다
     return (stdev(v) / len(v) ** 0.5) if len(v) > 1 else float("nan")
+
+
+def nmean(v):
+    v = [x for x in v if x == x]
+    return mean(v) if v else float("nan")
 
 
 def main():
@@ -71,8 +77,8 @@ def main():
     keys = ["success_rate", "j_ratio", "deadlock_rate", "elbow_ratio", "j_ratio_all", "length_ratio",
             "succ_easy", "succ_mid", "succ_hard", "jr_easy", "jr_mid", "jr_hard", "hard_gap",
             "rank_top1", "rank_spearman",
-            "steps_approach", "steps_approach_base", "reentries", "reentries_fail"]
-    agg = {k: (mean([r[k] for r in rs]), se([r[k] for r in rs])) for k in keys}
+            "steps_approach", "steps_approach_base", "reentries", "reentries_fail", "astar_overlap"]
+    agg = {k: (nmean([r.get(k, float('nan')) for r in rs]), se([r.get(k, float('nan')) for r in rs])) for k in keys}
     print(f"\n=== §7 재판정 ({len(rs)}시드 평균 ± SE) ===")
     for nm, k, thr, op in (("success", "success_rate", cfg.grad_success, "≥"),
                            ("J_ratio (성공)", "j_ratio", cfg.grad_j_ratio, "≤"),
