@@ -38,7 +38,7 @@ for tag, src in load_cells(NB):
         if tag == "3.":
             for k, v in override.items():
                 setattr(ns["cfg"], k, v)
-            ns["cfg"].pretrain_h = False          # 체크포인트의 h 를 그대로 본다
+            ns["cfg"].pretrain_h = False; ns["cfg"].bc_batches = 0          # 체크포인트의 h 를 그대로 본다
     elif tag == "9.":
         head = src.split("_t0 = time.time()")[0]  # 학습 호출 직전까지만
         with contextlib.redirect_stdout(io.StringIO()):

@@ -34,7 +34,7 @@ for tag, src in load_cells(NB):
             exec(compile(src, f"<nb:{tag}>", "exec"), ns)
         if tag == "3.":
             c = ns["cfg"]
-            c.pretrain_h = False; c.h_rank_batches = 0; c.h_rank_metrics = False   # 7b 가 캐시를 읽지 않게
+            c.pretrain_h = False; c.bc_batches = 0; c.h_rank_batches = 0; c.h_rank_metrics = False   # 7b 가 캐시를 읽지 않게
             c.legacy_dj_edge_bug = False
 K, JM, MOVE_DIST, SPEC = ns["K"], float(ns["J_MAX"]), ns["MOVE_DIST"], ns["SPEC"]
 E45 = float(SPEC.elbow45_kg) / JM

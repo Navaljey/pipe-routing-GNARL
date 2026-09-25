@@ -31,7 +31,7 @@ for tag, src in load_cells(NB):
         with contextlib.redirect_stdout(io.StringIO()):
             exec(compile(src, f"<nb:{tag}>", "exec"), ns)
         if tag == "3.":
-            ns["cfg"].pretrain_h = False
+            ns["cfg"].pretrain_h = False; ns["cfg"].bc_batches = 0
             ns["cfg"].obs_align_norm = a.norm
             ns["cfg"].obs_capture = a.capture
 OBS_DIM, DIMS, tail, K = ns["OBS_DIM"], ns["DIMS"], ns["tail_channels"], ns["K"]

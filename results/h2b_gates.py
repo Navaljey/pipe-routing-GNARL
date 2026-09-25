@@ -18,7 +18,7 @@ def boot(nb, **over):
             with contextlib.redirect_stdout(io.StringIO()):
                 exec(compile(src, f"<nb:{tag}>", "exec"), ns)
             if tag == "3.":
-                c = ns["cfg"]; c.pretrain_h = False; c.h_rank_batches = 0; c.h_rank_metrics = False
+                c = ns["cfg"]; c.pretrain_h = False; c.bc_batches = 0; c.h_rank_batches = 0; c.h_rank_metrics = False
                 for k, v in over.items(): setattr(c, k, v)
     return ns
 

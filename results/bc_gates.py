@@ -9,7 +9,8 @@ import contextlib, hashlib, io, json, sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import run_step1_ab as R
 
-OVR = dict(R.ARMS["L"], h_rank_batches=256, obs_align_norm="k", obs_capture=True, legacy_dj_edge_bug=False)
+OVR = dict(R.ARMS["L"], h_rank_batches=256, obs_align_norm="k", obs_capture=True, legacy_dj_edge_bug=False,
+           bc_batches=0)   # 관문 ①: BC 를 끈 경로가 수정 전과 같은가 (기본값은 §33-6 에서 3000)
 
 
 def state(nb_path, seed=1, extra=None):

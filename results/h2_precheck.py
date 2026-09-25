@@ -32,7 +32,7 @@ def boot():
                 exec(compile(src, f"<nb:{tag}>", "exec"), ns)
             if tag == "3.":
                 c = ns["cfg"]
-                c.pretrain_h = False; c.h_rank_batches = 0; c.h_rank_metrics = False
+                c.pretrain_h = False; c.bc_batches = 0; c.h_rank_batches = 0; c.h_rank_metrics = False
                 c.legacy_dj_edge_bug = False; c.obs_capture = True; c.obs_align_norm = "k"
     return ns
 

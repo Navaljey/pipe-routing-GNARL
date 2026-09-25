@@ -25,7 +25,7 @@ def build_ns(override):
             if tag == "3.":
                 for k, v in override.items():
                     setattr(ns["cfg"], k, v)
-                ns["cfg"].pretrain_h = False
+                ns["cfg"].pretrain_h = False; ns["cfg"].bc_batches = 0
                 ns["cfg"].auto_resume = False
         elif tag == "9.":
             with contextlib.redirect_stdout(io.StringIO()):

@@ -31,7 +31,7 @@ def build_ns(arm_override):
         if tag == "3.":
             for k, v in arm_override.items():
                 setattr(ns["cfg"], k, v)
-            ns["cfg"].pretrain_h = False       # 프로브는 체크포인트의 h 만 본다
+            ns["cfg"].pretrain_h = False; ns["cfg"].bc_batches = 0       # 프로브는 체크포인트의 h 만 본다
     return ns
 
 

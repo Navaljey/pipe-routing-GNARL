@@ -1,0 +1,290 @@
+{
+ "per_seed": [
+  {
+   "run": "L_300k_bc_s1",
+   "n_ep": 47,
+   "identity_max_err": 9.237055564881302e-14,
+   "excess_kg": 9.843740030805067,
+   "cruise_kg": 9.471990890623115,
+   "cruise_dec_per_ep": 18.48936170212766,
+   "cruise_mistakes_per_ep": 4.085106382978723,
+   "cruise_mistake_rate": 0.22094361334867663,
+   "cruise_top1": 0.7433831990794016,
+   "cruise_top1_fix": 0.7433831990794016,
+   "cruise_kg_per_mistake": 2.3186644367671163,
+   "approach_kg": 0.37174914018195127,
+   "approach_dec_per_ep": 2.3617021276595747,
+   "approach_mistakes_per_ep": 0.06382978723404255,
+   "approach_mistake_rate": 0.02702702702702703,
+   "approach_top1": 0.972972972972973,
+   "approach_top1_fix": 0.972972972972973,
+   "approach_kg_per_mistake": 5.82406986285057,
+   "onpath_kg": 2.2470647415935496,
+   "onpath_top1": 0.8268398268398268,
+   "onpath_dec_share": 0.2357142857142857,
+   "offpath_kg": 7.596675289211509,
+   "offpath_top1": 0.7516688918558078,
+   "offpath_dec_share": 0.7642857142857142,
+   "kind_turned_should_straight_kg": 2.5645024665169385,
+   "kind_turned_should_straight_n": 0.6170212765957447,
+   "kind_straight_should_turn_kg": 5.735275065259624,
+   "kind_straight_should_turn_n": 2.8297872340425534,
+   "kind_wrong_turn_dir_kg": 1.5439624990284961,
+   "kind_wrong_turn_dir_n": 0.7021276595744681,
+   "bug_pattern_kg": 1.0711604921382862,
+   "bug_pattern_n": 0.23404255319148937,
+   "bug_pattern_cruise_kg": 1.0367255577189172,
+   "fixable_by_dJ_kg": 0.0,
+   "fixable_by_dJ_n": 0.0
+  },
+  {
+   "run": "L_300k_bc_s2",
+   "n_ep": 48,
+   "identity_max_err": 2.7000623958883807e-13,
+   "excess_kg": 18.203514217535144,
+   "cruise_kg": 16.292795803529124,
+   "cruise_dec_per_ep": 22.791666666666668,
+   "cruise_mistakes_per_ep": 6.0625,
+   "cruise_mistake_rate": 0.2659963436928702,
+   "cruise_top1": 0.7120658135283364,
+   "cruise_top1_fix": 0.7120658135283364,
+   "cruise_kg_per_mistake": 2.687471472747072,
+   "approach_kg": 1.9107184140060198,
+   "approach_dec_per_ep": 3.125,
+   "approach_mistakes_per_ep": 0.375,
+   "approach_mistake_rate": 0.12,
+   "approach_top1": 0.88,
+   "approach_top1_fix": 0.88,
+   "approach_kg_per_mistake": 5.095249104016053,
+   "onpath_kg": 2.072741113704825,
+   "onpath_top1": 0.7448979591836735,
+   "onpath_dec_share": 0.15755627009646303,
+   "offpath_kg": 16.130773103830318,
+   "offpath_top1": 0.7299618320610687,
+   "offpath_dec_share": 0.842443729903537,
+   "kind_turned_should_straight_kg": 4.034346826413175,
+   "kind_turned_should_straight_n": 0.6875,
+   "kind_straight_should_turn_kg": 11.139700597406682,
+   "kind_straight_should_turn_n": 5.0625,
+   "kind_wrong_turn_dir_kg": 3.029466793715289,
+   "kind_wrong_turn_dir_n": 0.6875,
+   "bug_pattern_kg": 1.479019779810929,
+   "bug_pattern_n": 0.20833333333333334,
+   "bug_pattern_cruise_kg": 0.77942287343047,
+   "fixable_by_dJ_kg": 0.0,
+   "fixable_by_dJ_n": 0.0
+  },
+  {
+   "run": "L_300k_bc_s3",
+   "n_ep": 48,
+   "identity_max_err": 1.8829382497642655e-13,
+   "excess_kg": 17.393871200747846,
+   "cruise_kg": 15.269355156323135,
+   "cruise_dec_per_ep": 21.145833333333332,
+   "cruise_mistakes_per_ep": 5.416666666666667,
+   "cruise_mistake_rate": 0.2561576354679803,
+   "cruise_top1": 0.7024630541871921,
+   "cruise_top1_fix": 0.7024630541871921,
+   "cruise_kg_per_mistake": 2.818957875013502,
+   "approach_kg": 2.12451604442471,
+   "approach_dec_per_ep": 3.75,
+   "approach_mistakes_per_ep": 0.5208333333333334,
+   "approach_mistake_rate": 0.1388888888888889,
+   "approach_top1": 0.8611111111111112,
+   "approach_top1_fix": 0.8611111111111112,
+   "approach_kg_per_mistake": 4.079070805295443,
+   "onpath_kg": 2.516832654072172,
+   "onpath_top1": 0.826271186440678,
+   "onpath_dec_share": 0.19748953974895397,
+   "offpath_kg": 14.877038546675665,
+   "offpath_top1": 0.7017726798748697,
+   "offpath_dec_share": 0.802510460251046,
+   "kind_turned_should_straight_kg": 2.830279279946375,
+   "kind_turned_should_straight_n": 0.6041666666666666,
+   "kind_straight_should_turn_kg": 11.472317649031146,
+   "kind_straight_should_turn_n": 4.583333333333333,
+   "kind_wrong_turn_dir_kg": 3.0912742717703208,
+   "kind_wrong_turn_dir_n": 0.75,
+   "bug_pattern_kg": 1.015693993007084,
+   "bug_pattern_n": 0.20833333333333334,
+   "bug_pattern_cruise_kg": 1.015693993007084,
+   "fixable_by_dJ_kg": 0.0,
+   "fixable_by_dJ_n": 0.0
+  },
+  {
+   "run": "L_300k_bc_s4",
+   "n_ep": 48,
+   "identity_max_err": 1.3145040611561853e-13,
+   "excess_kg": 9.893184563687925,
+   "cruise_kg": 8.798597293680096,
+   "cruise_dec_per_ep": 20.854166666666668,
+   "cruise_mistakes_per_ep": 3.6458333333333335,
+   "cruise_mistake_rate": 0.17482517482517482,
+   "cruise_top1": 0.7832167832167832,
+   "cruise_top1_fix": 0.7832167832167832,
+   "cruise_kg_per_mistake": 2.413329543409398,
+   "approach_kg": 1.094587270007832,
+   "approach_dec_per_ep": 2.625,
+   "approach_mistakes_per_ep": 0.22916666666666666,
+   "approach_mistake_rate": 0.0873015873015873,
+   "approach_top1": 0.9126984126984127,
+   "approach_top1_fix": 0.9126984126984127,
+   "approach_kg_per_mistake": 4.776380814579631,
+   "onpath_kg": 2.0187461701000977,
+   "onpath_top1": 0.8338658146964856,
+   "onpath_dec_share": 0.2777284826974268,
+   "offpath_kg": 7.874438393587827,
+   "offpath_top1": 0.7837837837837838,
+   "offpath_dec_share": 0.7222715173025732,
+   "kind_turned_should_straight_kg": 1.420249045978996,
+   "kind_turned_should_straight_n": 0.3541666666666667,
+   "kind_straight_should_turn_kg": 6.464395940885404,
+   "kind_straight_should_turn_n": 2.8958333333333335,
+   "kind_wrong_turn_dir_kg": 2.008539576823528,
+   "kind_wrong_turn_dir_n": 0.625,
+   "bug_pattern_kg": 0.6012806132163424,
+   "bug_pattern_n": 0.16666666666666666,
+   "bug_pattern_cruise_kg": 0.5814564865019746,
+   "fixable_by_dJ_kg": 0.0,
+   "fixable_by_dJ_n": 0.0
+  }
+ ],
+ "agg": {
+  "n_ep": [
+   47.75,
+   0.25
+  ],
+  "identity_max_err": [
+   1.7053025658242404e-13,
+   3.856508472668874e-14
+  ],
+  "excess_kg": [
+   13.833577503193995,
+   2.295240322819823
+  ],
+  "cruise_kg": [
+   12.458184786038867,
+   1.9347018526004836
+  ],
+  "cruise_dec_per_ep": [
+   20.82025709219858,
+   0.886316289377479
+  ],
+  "cruise_mistakes_per_ep": [
+   4.8025265957446805,
+   0.5640133029707542
+  ],
+  "cruise_mistake_rate": [
+   0.22948069183367548,
+   0.020625953313110408
+  ],
+  "cruise_top1": [
+   0.7352822125029284,
+   0.018210453469858428
+  ],
+  "cruise_top1_fix": [
+   0.7352822125029284,
+   0.018210453469858428
+  ],
+  "cruise_kg_per_mistake": [
+   2.559605831984272,
+   0.11656994067924284
+  ],
+  "approach_kg": [
+   1.3753927171551283,
+   0.40144649808696464
+  ],
+  "approach_dec_per_ep": [
+   2.9654255319148937,
+   0.305694918513655
+  ],
+  "approach_mistakes_per_ep": [
+   0.29720744680851063,
+   0.09796040790664302
+  ],
+  "approach_mistake_rate": [
+   0.09330437580437581,
+   0.02452774723843333
+  ],
+  "approach_top1": [
+   0.9066956241956242,
+   0.024527747238433335
+  ],
+  "approach_top1_fix": [
+   0.9066956241956242,
+   0.024527747238433335
+  ],
+  "approach_kg_per_mistake": [
+   4.943692646685424,
+   0.36212308914148944
+  ],
+  "onpath_kg": [
+   2.213846169867661,
+   0.11213047827647735
+  ],
+  "onpath_top1": [
+   0.807968696790166,
+   0.021094389725784028
+  ],
+  "onpath_dec_share": [
+   0.21712214456428236,
+   0.025742844487031003
+  ],
+  "offpath_kg": [
+   11.61973133332633,
+   2.257796626431642
+  ],
+  "offpath_top1": [
+   0.7417967968938824,
+   0.017326188421903373
+  ],
+  "offpath_dec_share": [
+   0.7828778554357176,
+   0.02574284448703101
+  ],
+  "kind_turned_should_straight_kg": [
+   2.712344404713871,
+   0.5364207531196137
+  ],
+  "kind_turned_should_straight_n": [
+   0.5657136524822695,
+   0.07285553527438815
+  ],
+  "kind_straight_should_turn_kg": [
+   8.702922313145713,
+   1.5117696429532674
+  ],
+  "kind_straight_should_turn_n": [
+   3.842863475177305,
+   0.5743836133508626
+  ],
+  "kind_wrong_turn_dir_kg": [
+   2.4183107853344086,
+   0.38283905340523344
+  ],
+  "kind_wrong_turn_dir_n": [
+   0.691156914893617,
+   0.025776242806231957
+  ],
+  "bug_pattern_kg": [
+   1.0417887195431605,
+   0.17952762730308128
+  ],
+  "bug_pattern_n": [
+   0.20434397163120568,
+   0.013944578007432689
+  ],
+  "bug_pattern_cruise_kg": [
+   0.8533247276646114,
+   0.10777038376589236
+  ],
+  "fixable_by_dJ_kg": [
+   0.0,
+   0.0
+  ],
+  "fixable_by_dJ_n": [
+   0.0,
+   0.0
+  ]
+ }
+}

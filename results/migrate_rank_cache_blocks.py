@@ -20,7 +20,7 @@ for tag, s in load_cells(NB):
         with contextlib.redirect_stdout(io.StringIO()):
             exec(compile(s, f"<nb:{tag}>", "exec"), ns)
         if tag == "3.":
-            c = ns["cfg"]; c.pretrain_h = False; c.h_rank_batches = 0; c.h_rank_metrics = False
+            c = ns["cfg"]; c.pretrain_h = False; c.bc_batches = 0; c.h_rank_batches = 0; c.h_rank_metrics = False
             c.obs_capture = True; c.obs_align_norm = "k"; c.legacy_dj_edge_bug = False; c.obs_blocks = True
 assert ns["OBS_DIM"] == 132
 DIMS = np.asarray(ns["DIMS"]); blocks = ns["block_channels"]

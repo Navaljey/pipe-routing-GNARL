@@ -22,7 +22,7 @@ def build_ns():
             with contextlib.redirect_stdout(io.StringIO()):
                 exec(compile(src, f"<nb:{tag}>", "exec"), ns)
             if tag == "3.":
-                ns["cfg"].pretrain_h = False          # 라벨 생성에는 필요 없다
+                ns["cfg"].pretrain_h = False; ns["cfg"].bc_batches = 0          # 라벨 생성에는 필요 없다
                 ns["cfg"].h_rank_batches = 0          # 셀 7b 의 자동 빌드를 막는다
                 ns["cfg"].h_rank_metrics = False
     return ns
