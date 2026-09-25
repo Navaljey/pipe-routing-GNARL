@@ -34,9 +34,11 @@ def main():
     ap.add_argument("run_dir")
     ap.add_argument("--out", required=True)
     ap.add_argument("--ckpt", default="checkpoint_step1_final")
+    ap.add_argument("--blocks", action="store_true", help="H2-b 체크포인트 (obs_blocks=True, §32)")
     a = ap.parse_args()
     torch.set_num_threads(1)
-    override = dict(ARMS["L"]); override.update(h_rank_batches=256, obs_align_norm="k", obs_capture=True)
+    override = dict(ARMS["L"]); override.update(h_rank_batches=256, obs_align_norm="k", obs_capture=True,
+                                              obs_blocks=bool(a.blocks))
     from sb3_contrib import MaskablePPO
     ns = build_ns(override)
     model = MaskablePPO.load(os.path.join(a.run_dir, a.ckpt + ".zip"), device="cpu", print_system_info=False)

@@ -19,6 +19,7 @@ def last(pattern):
 
 
 A, B = last(sys.argv[1]), last(sys.argv[2])
+LAB = sys.argv[sys.argv.index("--label") + 1] if "--label" in sys.argv else "(b)"   # 둘째 arm 열 이름 (§30·§32 재사용)
 seeds = sorted(set(A) & set(B))
 se = lambda v: stdev(v) / len(v) ** .5 if len(v) > 1 else float("nan")
 KEYS = [("j_ratio", "J_ratio 성공분 (주)", -1), ("elbow_ratio", "elbow_ratio", -1), ("success_rate", "success", +1),
@@ -26,8 +27,8 @@ KEYS = [("j_ratio", "J_ratio 성공분 (주)", -1), ("elbow_ratio", "elbow_ratio
         ("j_ratio_all", "J_ratio 전체 (계기판)", -1), ("deadlock_rate", "deadlock", -1),
         ("rank_top1", "top-1", +1), ("rank_spearman", "rho", +1), ("hard_gap", "3분위 어려움 격차", -1)]
 out = dict(seeds=seeds, rows={})
-print(f"시드 {seeds} · 대조 @ {[A[s]['timesteps'] for s in seeds]} · (b) @ {[B[s]['timesteps'] for s in seeds]}")
-print(f"{'지표':<24}{'H3fix':>9}{'(b)':>9}{'Δ':>9}{'SE':>8}   2SE")
+print(f"시드 {seeds} · 대조 @ {[A[s]['timesteps'] for s in seeds]} · {LAB} @ {[B[s]['timesteps'] for s in seeds]}")
+print(f"{'지표':<24}{'H3fix':>9}{LAB:>9}{'Δ':>9}{'SE':>8}   2SE")
 for k, nm, good in KEYS:
     a = [A[s].get(k, float("nan")) for s in seeds]; b = [B[s].get(k, float("nan")) for s in seeds]
     d = [y - x for x, y in zip(a, b) if x == x and y == y]
