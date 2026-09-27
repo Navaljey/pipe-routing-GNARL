@@ -44,7 +44,7 @@ def main():
             cand = [i for i in range(26) if ns["free3"](pad, s[0] + D[i][0], s[1] + D[i][1], s[2] + D[i][2])]
             if not cand: continue
             s, g, d0 = tuple(int(v) for v in s), tuple(int(v) for v in g), int(cand[0]); got += 1
-            row = dict(target=dist, manhattan=int(sum(abs(x - y) for x, y in zip(s, g))))
+            row = dict(target=dist, manhattan=int(sum(abs(x - y) for x, y in zip(s, g))), start=list(s), goal=list(g), start_dir=d0)
             ns["_FIELD_CACHE"].clear()
             t0 = time.time(); field, rounds = ns["geodesic_field"](free, g); row["field_sec"] = round(time.time() - t0, 1); row["field_rounds"] = rounds
             row["geo_cells"] = float(field[s]); row["octile_cells"] = float(ns["h_octile3d_cells"](s, g))
