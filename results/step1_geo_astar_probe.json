@@ -1,0 +1,28 @@
+{
+ "fill": 0.120001,
+ "box": null,
+ "rows": [
+  {
+   "target": 270,
+   "manhattan": 257,
+   "field_sec": 21.2,
+   "field_rounds": 6,
+   "geo_cells": 206.83017606756658,
+   "octile_cells": 206.83017606756684,
+   "geodesic": {
+    "ok": true,
+    "sec": 57.4,
+    "J": 177.46000969915664,
+    "expanded": 634614,
+    "rss_growth_mb": 616
+   },
+   "octile": {
+    "ok": true,
+    "sec": 40.3,
+    "J": 177.46000969915664,
+    "expanded": 647865,
+    "rss_growth_mb": 21
+   }
+  }
+ ]
+}
