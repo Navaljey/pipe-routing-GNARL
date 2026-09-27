@@ -5,82 +5,100 @@
   {
    "target": 270,
    "manhattan": 257,
-   "field_sec": 21.2,
+   "start": [
+    381,
+    173,
+    52
+   ],
+   "goal": [
+    307,
+    0,
+    62
+   ],
+   "start_dir": 0,
+   "field_sec": 21.7,
    "field_rounds": 6,
    "geo_cells": 206.83017606756658,
    "octile_cells": 206.83017606756684,
    "geodesic": {
     "ok": true,
-    "sec": 57.4,
+    "sec": 59.4,
     "J": 177.46000969915664,
     "expanded": 634614,
-    "rss_growth_mb": 616
+    "rss_growth_mb": 615
    },
    "octile": {
     "ok": true,
-    "sec": 40.3,
+    "sec": 36.8,
     "J": 177.46000969915664,
     "expanded": 647865,
-    "rss_growth_mb": 21
+    "rss_growth_mb": 22
    }
   },
   {
    "target": 270,
    "manhattan": 285,
+   "start": [
+    118,
+    269,
+    11
+   ],
+   "goal": [
+    53,
+    133,
+    95
+   ],
+   "start_dir": 1,
    "field_sec": 18.1,
    "field_rounds": 5,
    "geo_cells": 191.45336017706543,
    "octile_cells": 191.45336017706583,
    "geodesic": {
     "ok": true,
-    "sec": 75.2,
+    "sec": 74.8,
     "J": 163.95403071376504,
     "expanded": 830592,
     "rss_growth_mb": 86
    },
    "octile": {
     "ok": true,
-    "sec": 57.3,
+    "sec": 56.5,
     "J": 163.95403071376504,
     "expanded": 848797,
-    "rss_growth_mb": 21
+    "rss_growth_mb": 13
    }
   },
   {
    "target": 270,
    "manhattan": 230,
-   "field_sec": 17.9,
+   "start": [
+    162,
+    146,
+    37
+   ],
+   "goal": [
+    184,
+    0,
+    99
+   ],
+   "start_dir": 0,
+   "field_sec": 17.6,
    "field_rounds": 5,
    "geo_cells": 178.6736602614388,
    "octile_cells": 178.6736602614391,
    "geodesic": {
     "ok": true,
-    "sec": 22.4,
+    "sec": 22.0,
     "J": 152.1922965104584,
     "expanded": 75327,
     "rss_growth_mb": 0
    },
    "octile": {
     "ok": true,
-    "sec": 4.3,
+    "sec": 4.7,
     "J": 152.1922965104584,
     "expanded": 76613,
     "rss_growth_mb": 0
-   }
-  },
-  {
-   "target": 500,
-   "manhattan": 510,
-   "field_sec": 18.5,
-   "field_rounds": 5,
-   "geo_cells": 349.19182470171177,
-   "octile_cells": 349.1918247017121,
-   "geodesic": {
-    "ok": true,
-    "sec": 403.8,
-    "J": 295.15971500890385,
-    "expanded": 3876921,
-    "rss_growth_mb": 1881
    }
   }
  ]
