@@ -1,0 +1,67 @@
+{
+ "gate1": {
+  "obs_dim": [
+   80,
+   80
+  ],
+  "cache_same": true,
+  "checklist_same": true,
+  "n_states": 11849,
+  "mask_diff": 0,
+  "obs_diff": 0,
+  "rollout_diff": 0
+ },
+ "gate2": {
+  "obs_dim": 82,
+  "gnarl_obs_dim": 2323,
+  "cache": "g3_scen_100A_50x50x20_k6_n500+48_d2_f0.12_t180_m30_gf0.5_G0.pkl",
+  "pipe_type_stats": {
+   "train": {
+    "picked": 250,
+    "gravity": 250,
+    "swapped": 118,
+    "failed": 0
+   },
+   "eval": {
+    "picked": 24,
+    "gravity": 24,
+    "swapped": 12,
+    "failed": 0
+   }
+  },
+  "checklist": [
+   "PASS  [1] 무효행동=제자리+페널티",
+   "PASS  [2] 경계밖 pos → 전부 False",
+   "PASS  [3] 초기방향 집합 사용",
+   "PASS  [4] k 제약 도달성 검증됨",
+   "PASS  [5] DIAG_J 정규화",
+   "PASS  [6] 역방향 상시 마스킹",
+   "PASS  [7] s<k 면 턴 마스킹",
+   "PASS  [8] 보상식 일치 (stage=1c)",
+   "PASS  [9] 격자 이탈 없음",
+   "PASS  [10] Φ(종단)=0",
+   "PASS  [11] 중력관 역구배 금지 (G0) · 환경=A* 마스크",
+   "PASS  [12] 관종 채널 obs[80]=is_gravity · obs[81]=0"
+  ],
+  "g0_J_vs_s36_checked": 144,
+  "g0_J_vs_s36_mismatch": 0,
+  "swapped": 130
+ },
+ "gate3": {
+  "ckpt": "/home/user/pipe-routing-GNARL/_ab/L_2000k_bc_s1/checkpoint_step1_final.zip",
+  "skipped_keys": [
+   "mlp_extractor.policy_net.0.weight",
+   "mlp_extractor.value_net.0.weight"
+  ],
+  "pressure_same": 24,
+  "pressure_n": 24,
+  "gravity_t0": {
+   "n": 24,
+   "success": 0.5833333333333334,
+   "deadlock": 0.0,
+   "timeout": 0.4166666666666667,
+   "j_ratio": 1.3067764879153434
+  },
+  "mutation_gate11": false
+ }
+}
