@@ -100,6 +100,39 @@
     "expanded": 76613,
     "rss_growth_mb": 0
    }
+  },
+  {
+   "target": 500,
+   "manhattan": 510,
+   "start": [
+    247,
+    106,
+    70
+   ],
+   "goal": [
+    0,
+    299,
+    0
+   ],
+   "start_dir": 0,
+   "field_sec": 18.3,
+   "field_rounds": 5,
+   "geo_cells": 349.19182470171177,
+   "octile_cells": 349.1918247017121,
+   "geodesic": {
+    "ok": true,
+    "sec": 406.7,
+    "J": 295.15971500890385,
+    "expanded": 3876921,
+    "rss_growth_mb": 1890
+   },
+   "octile": {
+    "ok": true,
+    "sec": 378.6,
+    "J": 295.15971500890385,
+    "expanded": 3917661,
+    "rss_growth_mb": 22
+   }
   }
  ]
 }
