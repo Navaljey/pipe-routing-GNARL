@@ -24,9 +24,11 @@ def boot(nx, ny, nz):
     exec(compile("import os, sys, time", "<p>", "exec"), ns)
     for tag, src in load_cells(NB):
         if tag == "3.":
+            assert src.count("cfg = Step1Config()") == 1
+            src = src.replace("cfg = Step1Config()", f"cfg = Step1Config(NX={nx}, NY={ny}, NZ={nz})")  # J_MAX · PAD 가 셀 3 에서 계산된다
             with contextlib.redirect_stdout(io.StringIO()):
                 exec(compile(src, "<nb:3>", "exec"), ns)
-            c = ns["cfg"]; c.NX, c.NY, c.NZ = nx, ny, nz
+            c = ns["cfg"]
             c.pretrain_h = False; c.bc_batches = 0; c.h_rank_batches = 0; c.h_rank_metrics = False
         elif tag == "4.":
             src = src[:src.find("CACHE = (")]          # 풀 생성 앞까지만
@@ -41,7 +43,7 @@ def fill_grid(ns, rng, fill):
     free = np.ones((c.NX, c.NY, c.NZ), bool)
     target = int(fill * free.size)
     while (~free).sum() < target:
-        n = max(1000, int((target - (~free).sum()) / 12))
+        n = max(50, int((target - (~free).sum()) / 45))      # 평균 상자 부피 22.5 칸 × 겹침 여유 2 — 목표를 넘기지 않게 조금씩
         sx = rng.integers(2, 5, n); sy = rng.integers(2, 5, n); sz = rng.integers(1, 5, n)
         x = rng.integers(0, c.NX - sx + 1); y = rng.integers(0, c.NY - sy + 1); z = rng.integers(0, c.NZ - sz + 1)
         for i in range(n):
@@ -103,12 +105,12 @@ def probe_obs(ns, free, rng, n=200):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", required=True)
-    ap.add_argument("--max-expand", type=int, default=3_000_000)
+    ap.add_argument("--max-expand", type=int, default=6_000_000)
     ap.add_argument("--per", type=int, default=3)
     a = ap.parse_args()
     res = {}
     for name, (nx, ny, nz), dists in (("verify", (50, 50, 20), [30, 60]),
-                                      ("full", (400, 300, 100), [60, 120, 240])):
+                                      ("full", (400, 300, 100), [120, 270, 500])):
         print(f"== {name} {nx}x{ny}x{nz}", flush=True)
         ns = boot(nx, ny, nz); rng = np.random.default_rng(0); R = {}
         t0 = time.time(); free_g = ns["gen_obstacle_grid"](rng)

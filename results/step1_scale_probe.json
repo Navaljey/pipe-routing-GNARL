@@ -6,97 +6,97 @@
   },
   "gen_fill12": {
    "sec": 0.0,
-   "fill": 0.34662
+   "fill": 0.12714
   },
   "scenario_bytes": 206816,
   "J_MAX": 59.155177288213764,
   "K": 6,
   "obs27": {
-   "ms_mean": 0.38472043000183476,
-   "ms_p90": 0.41643899992322986
+   "ms_mean": 0.38951158498548466,
+   "ms_p90": 0.41980239989243273
   },
   "astar_fill12": [
    {
     "target_dist": 30,
-    "manhattan": 31,
+    "manhattan": 34,
     "ok": true,
-    "sec": 0.007,
-    "expanded": 183,
-    "n_cells": 20,
-    "rss_growth_mb": 0.2
+    "sec": 0.072,
+    "expanded": 2154,
+    "n_cells": 23,
+    "rss_growth_mb": 2.0
    },
    {
     "target_dist": 30,
-    "manhattan": 30,
+    "manhattan": 24,
     "ok": true,
-    "sec": 0.012,
-    "expanded": 348,
-    "n_cells": 23,
+    "sec": 0.004,
+    "expanded": 107,
+    "n_cells": 14,
     "rss_growth_mb": 0.0
    },
    {
     "target_dist": 30,
     "manhattan": 33,
     "ok": true,
-    "sec": 0.008,
-    "expanded": 231,
-    "n_cells": 27,
+    "sec": 0.006,
+    "expanded": 141,
+    "n_cells": 19,
     "rss_growth_mb": 0.0
    },
    {
     "target_dist": 60,
-    "manhattan": 70,
+    "manhattan": 60,
     "ok": true,
-    "sec": 0.314,
-    "expanded": 10052,
-    "n_cells": 53,
-    "rss_growth_mb": 4.8
+    "sec": 0.213,
+    "expanded": 6067,
+    "n_cells": 33,
+    "rss_growth_mb": 3.5
    },
    {
     "target_dist": 60,
-    "manhattan": 54,
+    "manhattan": 59,
     "ok": true,
-    "sec": 0.007,
-    "expanded": 148,
-    "n_cells": 48,
-    "rss_growth_mb": 0.0
+    "sec": 0.181,
+    "expanded": 5554,
+    "n_cells": 39,
+    "rss_growth_mb": 0.2
    },
    {
     "target_dist": 60,
-    "manhattan": 64,
+    "manhattan": 47,
     "ok": true,
-    "sec": 0.077,
-    "expanded": 2400,
-    "n_cells": 52,
+    "sec": 0.015,
+    "expanded": 416,
+    "n_cells": 35,
     "rss_growth_mb": 0.0
    }
   ],
   "astar_current_gen": [
    {
     "target_dist": 60,
-    "manhattan": 48,
+    "manhattan": 73,
     "ok": true,
-    "sec": 0.028,
-    "expanded": 720,
-    "n_cells": 26,
+    "sec": 0.013,
+    "expanded": 416,
+    "n_cells": 28,
     "rss_growth_mb": 0.0
    },
    {
     "target_dist": 60,
-    "manhattan": 49,
+    "manhattan": 50,
     "ok": true,
-    "sec": 0.033,
-    "expanded": 974,
-    "n_cells": 24,
+    "sec": 0.006,
+    "expanded": 189,
+    "n_cells": 35,
     "rss_growth_mb": 0.0
    },
    {
     "target_dist": 60,
-    "manhattan": 54,
+    "manhattan": 61,
     "ok": true,
-    "sec": 0.032,
-    "expanded": 914,
-    "n_cells": 30,
+    "sec": 0.027,
+    "expanded": 552,
+    "n_cells": 40,
     "rss_growth_mb": 0.0
    }
   ]
