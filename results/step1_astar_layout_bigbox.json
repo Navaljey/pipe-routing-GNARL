@@ -1,0 +1,90 @@
+{
+ "box": "20,20,10,60,60,40",
+ "grids": [
+  {
+   "grid": 0,
+   "seed": 100,
+   "fill": 0.12130958333333333,
+   "gen_sec": 2.6,
+   "rejected_disconnected": 0
+  }
+ ],
+ "rows": [
+  {
+   "grid": 0,
+   "target": 270,
+   "manhattan": 303,
+   "start": [
+    346,
+    143,
+    76
+   ],
+   "goal": [
+    222,
+    299,
+    99
+   ],
+   "start_dir": 1,
+   "field_sec": 14.6,
+   "geo_cells": 214.67273837376652,
+   "octile_cells": 214.67273837376678,
+   "ok": true,
+   "sec": 2.1,
+   "J": 180.79155439088217,
+   "n_cells": 156,
+   "expanded": 24689,
+   "rss_growth_mb": 0
+  },
+  {
+   "grid": 0,
+   "target": 270,
+   "manhattan": 247,
+   "start": [
+    51,
+    254,
+    68
+   ],
+   "goal": [
+    152,
+    139,
+    99
+   ],
+   "start_dir": 0,
+   "field_sec": 15.3,
+   "geo_cells": 166.68852440075145,
+   "octile_cells": 166.68852440075185,
+   "ok": true,
+   "sec": 0.8,
+   "J": 140.4542621426051,
+   "n_cells": 115,
+   "expanded": 9977,
+   "rss_growth_mb": 0
+  },
+  {
+   "grid": 0,
+   "target": 270,
+   "manhattan": 299,
+   "start": [
+    132,
+    176,
+    20
+   ],
+   "goal": [
+    29,
+    0,
+    0
+   ],
+   "start_dir": 0,
+   "field_sec": 10.9,
+   "geo_cells": 225.02074182834406,
+   "octile_cells": 225.02074182834446,
+   "ok": true,
+   "sec": 56.2,
+   "J": 185.3216971718175,
+   "n_cells": 176,
+   "expanded": 219118,
+   "rss_growth_mb": 662
+  }
+ ],
+ "max_expand": 6000000
+}
