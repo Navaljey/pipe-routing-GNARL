@@ -1,0 +1,40 @@
+{
+ "box": null,
+ "grids": [
+  {
+   "grid": 0,
+   "seed": 100,
+   "fill": 0.12000141666666667,
+   "gen_sec": 1.3,
+   "rejected_disconnected": 0
+  }
+ ],
+ "rows": [
+  {
+   "grid": 0,
+   "target": 270,
+   "manhattan": 296,
+   "start": [
+    176,
+    159,
+    7
+   ],
+   "goal": [
+    37,
+    9,
+    0
+   ],
+   "start_dir": 0,
+   "field_sec": 19.0,
+   "geo_cells": 209.80054588623094,
+   "octile_cells": 209.80054588623068,
+   "ok": true,
+   "sec": 0.2,
+   "J": 175.15943943841535,
+   "n_cells": 150,
+   "expanded": 3890,
+   "rss_growth_mb": 0
+  }
+ ],
+ "max_expand": 6000000
+}
