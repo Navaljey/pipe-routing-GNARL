@@ -1,0 +1,145 @@
+{
+ "dust_grids": [
+  {
+   "grid": 0,
+   "seed": 100,
+   "fill": 0.12000141666666667,
+   "gen_sec": 1.3,
+   "rejected_disconnected": 0
+  },
+  {
+   "grid": 1,
+   "seed": 101,
+   "fill": 0.120001,
+   "gen_sec": 1.3,
+   "rejected_disconnected": 0
+  },
+  {
+   "grid": 2,
+   "seed": 102,
+   "fill": 0.12000058333333333,
+   "gen_sec": 0.9,
+   "rejected_disconnected": 0
+  },
+  {
+   "grid": 3,
+   "seed": 103,
+   "fill": 0.12000108333333333,
+   "gen_sec": 2.8,
+   "rejected_disconnected": 0
+  }
+ ],
+ "bigbox_grids": [
+  {
+   "grid": 0,
+   "seed": 100,
+   "fill": 0.12130958333333333,
+   "gen_sec": 2.6,
+   "rejected_disconnected": 0
+  },
+  {
+   "grid": 1,
+   "seed": 101,
+   "fill": 0.12080233333333333,
+   "gen_sec": 2.0,
+   "rejected_disconnected": 0
+  },
+  {
+   "grid": 2,
+   "seed": 102,
+   "fill": 0.121243,
+   "gen_sec": 2.1,
+   "rejected_disconnected": 0
+  },
+  {
+   "grid": 3,
+   "seed": 103,
+   "fill": 0.12335808333333333,
+   "gen_sec": 2.3,
+   "rejected_disconnected": 0
+  }
+ ],
+ "by_dist": {
+  "270": {
+   "ratio": 1.9320210283492905,
+   "ci95": [
+    0.24241192997308778,
+    11.777616795280524
+   ],
+   "dust": {
+    "n": 12,
+    "n_grids": 4,
+    "ok": 12,
+    "within_600k": 9,
+    "geo_mean": 157826.87302368472,
+    "median": 418202.5,
+    "min": 2142.0,
+    "max": 1946410.0,
+    "sec_median": 19.7,
+    "sec_max": 141.4,
+    "rss_growth_max_mb": 641,
+    "exp_per_cell_median": 2826.1121376811598,
+    "manhattan_mean": 266.5,
+    "failed_at_limit": 0
+   },
+   "bigbox": {
+    "n": 12,
+    "n_grids": 4,
+    "ok": 12,
+    "within_600k": 11,
+    "geo_mean": 81690.03893220109,
+    "median": 55343.5,
+    "min": 9977.0,
+    "max": 1267320.0,
+    "sec_median": 4.05,
+    "sec_max": 60.7,
+    "rss_growth_max_mb": 662,
+    "exp_per_cell_median": 327.0363220363221,
+    "manhattan_mean": 274.0833333333333,
+    "failed_at_limit": 0
+   },
+   "dust_ratio_is_lower_bound": false
+  },
+  "500": {
+   "ratio": 4.200980192580636,
+   "ci95": [
+    1.4328219578261445,
+    14.994008500943455
+   ],
+   "dust": {
+    "n": 12,
+    "n_grids": 4,
+    "ok": 10,
+    "within_600k": 1,
+    "geo_mean": 1917512.914645498,
+    "median": 1590951.0,
+    "min": 489549.0,
+    "max": 6000000.0,
+    "sec_median": 173.65,
+    "sec_max": 1089.8,
+    "rss_growth_max_mb": 3420,
+    "exp_per_cell_median": 4077.649325303289,
+    "manhattan_mean": 483.5,
+    "failed_at_limit": 2
+   },
+   "bigbox": {
+    "n": 12,
+    "n_grids": 4,
+    "ok": 12,
+    "within_600k": 7,
+    "geo_mean": 456444.1693945673,
+    "median": 534944.5,
+    "min": 14295.0,
+    "max": 4967542.0,
+    "sec_median": 119.69999999999999,
+    "sec_max": 1582.5,
+    "rss_growth_max_mb": 5752,
+    "exp_per_cell_median": 1982.6330730672837,
+    "manhattan_mean": 480.1666666666667,
+    "failed_at_limit": 0
+   },
+   "dust_ratio_is_lower_bound": true,
+   "verdict": "확인 안 됨"
+  }
+ }
+}
