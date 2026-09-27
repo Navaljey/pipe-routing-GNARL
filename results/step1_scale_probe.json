@@ -1,0 +1,104 @@
+{
+ "verify": {
+  "gen_current": {
+   "sec": 0.0,
+   "fill": 0.12024
+  },
+  "gen_fill12": {
+   "sec": 0.0,
+   "fill": 0.34662
+  },
+  "scenario_bytes": 206816,
+  "J_MAX": 59.155177288213764,
+  "K": 6,
+  "obs27": {
+   "ms_mean": 0.38472043000183476,
+   "ms_p90": 0.41643899992322986
+  },
+  "astar_fill12": [
+   {
+    "target_dist": 30,
+    "manhattan": 31,
+    "ok": true,
+    "sec": 0.007,
+    "expanded": 183,
+    "n_cells": 20,
+    "rss_growth_mb": 0.2
+   },
+   {
+    "target_dist": 30,
+    "manhattan": 30,
+    "ok": true,
+    "sec": 0.012,
+    "expanded": 348,
+    "n_cells": 23,
+    "rss_growth_mb": 0.0
+   },
+   {
+    "target_dist": 30,
+    "manhattan": 33,
+    "ok": true,
+    "sec": 0.008,
+    "expanded": 231,
+    "n_cells": 27,
+    "rss_growth_mb": 0.0
+   },
+   {
+    "target_dist": 60,
+    "manhattan": 70,
+    "ok": true,
+    "sec": 0.314,
+    "expanded": 10052,
+    "n_cells": 53,
+    "rss_growth_mb": 4.8
+   },
+   {
+    "target_dist": 60,
+    "manhattan": 54,
+    "ok": true,
+    "sec": 0.007,
+    "expanded": 148,
+    "n_cells": 48,
+    "rss_growth_mb": 0.0
+   },
+   {
+    "target_dist": 60,
+    "manhattan": 64,
+    "ok": true,
+    "sec": 0.077,
+    "expanded": 2400,
+    "n_cells": 52,
+    "rss_growth_mb": 0.0
+   }
+  ],
+  "astar_current_gen": [
+   {
+    "target_dist": 60,
+    "manhattan": 48,
+    "ok": true,
+    "sec": 0.028,
+    "expanded": 720,
+    "n_cells": 26,
+    "rss_growth_mb": 0.0
+   },
+   {
+    "target_dist": 60,
+    "manhattan": 49,
+    "ok": true,
+    "sec": 0.033,
+    "expanded": 974,
+    "n_cells": 24,
+    "rss_growth_mb": 0.0
+   },
+   {
+    "target_dist": 60,
+    "manhattan": 54,
+    "ok": true,
+    "sec": 0.032,
+    "expanded": 914,
+    "n_cells": 30,
+    "rss_growth_mb": 0.0
+   }
+  ]
+ }
+}
