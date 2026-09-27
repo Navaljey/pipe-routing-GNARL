@@ -100,5 +100,74 @@
     "rss_growth_mb": 0.0
    }
   ]
+ },
+ "full": {
+  "source": "parsed from scale_probe.log — 거리 500 첫 탐색이 한도(6M 전개, 990 s, RSS 약 5.6 GB)에 걸려 중단함",
+  "gen_current": {
+   "sec": 0.03,
+   "fill": 0.0018705833333333333
+  },
+  "gen_fill12": {
+   "sec": 0.29,
+   "fill": 0.120032
+  },
+  "scenario_mb": 27.2,
+  "obs27": {
+   "ms_mean": 0.38448962000302345,
+   "ms_p90": 0.4455016000520118
+  },
+  "J_MAX": 410.47107084421924,
+  "astar_fill12": [
+   {
+    "target_dist": 120,
+    "manhattan": 138,
+    "ok": true,
+    "sec": 3.27,
+    "expanded": 65914
+   },
+   {
+    "target_dist": 120,
+    "manhattan": 96,
+    "ok": true,
+    "sec": 0.39,
+    "expanded": 9440
+   },
+   {
+    "target_dist": 120,
+    "manhattan": 116,
+    "ok": true,
+    "sec": 0.59,
+    "expanded": 12242
+   },
+   {
+    "target_dist": 270,
+    "manhattan": 247,
+    "ok": true,
+    "sec": 11.7,
+    "expanded": 236355
+   },
+   {
+    "target_dist": 270,
+    "manhattan": 334,
+    "ok": true,
+    "sec": 45.58,
+    "expanded": 816577
+   },
+   {
+    "target_dist": 270,
+    "manhattan": 204,
+    "ok": true,
+    "sec": 15.29,
+    "expanded": 318362
+   },
+   {
+    "target_dist": 500,
+    "manhattan": 524,
+    "ok": false,
+    "sec": 990.02,
+    "expanded": 6000000
+   }
+  ],
+  "rss_mb_during_500": 5629
  }
 }
