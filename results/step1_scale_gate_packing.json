@@ -1,0 +1,39 @@
+{
+ "default_pack_flag": false,
+ "forced_pack_flag": true,
+ "verify_grid_mismatch": 0,
+ "verify_bits_MB": 3.425,
+ "verify_bool_MB": 113.335168,
+ "rollout_identical": true,
+ "pickle_roundtrip_ok": true,
+ "full_auto_pack": true,
+ "full": [
+  {
+   "gen_sec": 0.62,
+   "fill": 0.12000158333333333,
+   "bits_MB": 1.5,
+   "bool_MB": 27.248896,
+   "unpack_pad_sec": 0.006,
+   "cache_hit_sec": 1.2e-05,
+   "pad_ok": true
+  },
+  {
+   "gen_sec": 0.65,
+   "fill": 0.12000408333333333,
+   "bits_MB": 1.5,
+   "bool_MB": 27.248896,
+   "unpack_pad_sec": 0.008,
+   "cache_hit_sec": 1.5e-05,
+   "pad_ok": true
+  },
+  {
+   "gen_sec": 0.73,
+   "fill": 0.12000366666666666,
+   "bits_MB": 1.5,
+   "bool_MB": 27.248896,
+   "unpack_pad_sec": 0.008,
+   "cache_hit_sec": 1.6e-05,
+   "pad_ok": true
+  }
+ ]
+}
