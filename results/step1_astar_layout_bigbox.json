@@ -7,6 +7,27 @@
    "fill": 0.12130958333333333,
    "gen_sec": 2.6,
    "rejected_disconnected": 0
+  },
+  {
+   "grid": 1,
+   "seed": 101,
+   "fill": 0.12080233333333333,
+   "gen_sec": 2.0,
+   "rejected_disconnected": 0
+  },
+  {
+   "grid": 2,
+   "seed": 102,
+   "fill": 0.121243,
+   "gen_sec": 2.1,
+   "rejected_disconnected": 0
+  },
+  {
+   "grid": 3,
+   "seed": 103,
+   "fill": 0.12335808333333333,
+   "gen_sec": 2.3,
+   "rejected_disconnected": 0
   }
  ],
  "rows": [
@@ -84,6 +105,531 @@
    "n_cells": 176,
    "expanded": 219118,
    "rss_growth_mb": 662
+  },
+  {
+   "grid": 0,
+   "target": 500,
+   "manhattan": 488,
+   "start": [
+    298,
+    136,
+    54
+   ],
+   "goal": [
+    0,
+    0,
+    0
+   ],
+   "start_dir": 0,
+   "field_sec": 9.9,
+   "geo_cells": 371.4962557233127,
+   "octile_cells": 371.4962557233132,
+   "ok": true,
+   "sec": 1582.5,
+   "J": 307.414485857268,
+   "n_cells": 298,
+   "expanded": 4967542,
+   "rss_growth_mb": 5752
+  },
+  {
+   "grid": 0,
+   "target": 500,
+   "manhattan": 499,
+   "start": [
+    161,
+    253,
+    8
+   ],
+   "goal": [
+    399,
+    0,
+    0
+   ],
+   "start_dir": 0,
+   "field_sec": 13.8,
+   "geo_cells": 354.12552580636424,
+   "octile_cells": 354.1255258063629,
+   "ok": true,
+   "sec": 1.4,
+   "J": 291.3410482741215,
+   "n_cells": 253,
+   "expanded": 14295,
+   "rss_growth_mb": 0
+  },
+  {
+   "grid": 0,
+   "target": 500,
+   "manhattan": 443,
+   "start": [
+    206,
+    163,
+    25
+   ],
+   "goal": [
+    0,
+    0,
+    99
+   ],
+   "start_dir": 0,
+   "field_sec": 11.3,
+   "geo_cells": 300.4475805853233,
+   "octile_cells": 297.03676681130236,
+   "ok": true,
+   "sec": 8.0,
+   "J": 248.45490507169032,
+   "n_cells": 206,
+   "expanded": 114124,
+   "rss_growth_mb": 0
+  },
+  {
+   "grid": 1,
+   "target": 270,
+   "manhattan": 267,
+   "start": [
+    339,
+    44,
+    43
+   ],
+   "goal": [
+    225,
+    154,
+    0
+   ],
+   "start_dir": 0,
+   "field_sec": 14.1,
+   "geo_cells": 173.23049340445874,
+   "octile_cells": 173.23049340445908,
+   "ok": true,
+   "sec": 1.4,
+   "J": 146.67431486143067,
+   "n_cells": 114,
+   "expanded": 16894,
+   "rss_growth_mb": 0
+  },
+  {
+   "grid": 1,
+   "target": 270,
+   "manhattan": 290,
+   "start": [
+    290,
+    123,
+    41
+   ],
+   "goal": [
+    399,
+    0,
+    99
+   ],
+   "start_dir": 0,
+   "field_sec": 13.3,
+   "geo_cells": 195.89074744230345,
+   "octile_cells": 186.5838385200227,
+   "ok": true,
+   "sec": 60.7,
+   "J": 167.99115165441137,
+   "n_cells": 143,
+   "expanded": 1267320,
+   "rss_growth_mb": 0
+  },
+  {
+   "grid": 1,
+   "target": 270,
+   "manhattan": 283,
+   "start": [
+    32,
+    185,
+    14
+   ],
+   "goal": [
+    291,
+    172,
+    3
+   ],
+   "start_dir": 0,
+   "field_sec": 14.6,
+   "geo_cells": 268.70941313274994,
+   "octile_cells": 267.88098600800384,
+   "ok": true,
+   "sec": 2.5,
+   "J": 224.8027955366303,
+   "n_cells": 259,
+   "expanded": 41653,
+   "rss_growth_mb": 0
+  },
+  {
+   "grid": 1,
+   "target": 500,
+   "manhattan": 548,
+   "start": [
+    233,
+    250,
+    94
+   ],
+   "goal": [
+    29,
+    0,
+    0
+   ],
+   "start_dir": 0,
+   "field_sec": 10.9,
+   "geo_cells": 364.376267772515,
+   "octile_cells": 364.3762677725149,
+   "ok": true,
+   "sec": 322.3,
+   "J": 299.59289555687513,
+   "n_cells": 250,
+   "expanded": 1976798,
+   "rss_growth_mb": 0
+  },
+  {
+   "grid": 1,
+   "target": 500,
+   "manhattan": 445,
+   "start": [
+    62,
+    68,
+    60
+   ],
+   "goal": [
+    367,
+    148,
+    0
+   ],
+   "start_dir": 0,
+   "field_sec": 10.4,
+   "geo_cells": 357.2073197015941,
+   "octile_cells": 357.20731970159454,
+   "ok": true,
+   "sec": 161.2,
+   "J": 297.62189235978497,
+   "n_cells": 305,
+   "expanded": 687356,
+   "rss_growth_mb": 0
+  },
+  {
+   "grid": 1,
+   "target": 500,
+   "manhattan": 547,
+   "start": [
+    356,
+    184,
+    92
+   ],
+   "goal": [
+    0,
+    0,
+    99
+   ],
+   "start_dir": 0,
+   "field_sec": 10.4,
+   "geo_cells": 434.4401561930207,
+   "octile_cells": 434.44015619301996,
+   "ok": true,
+   "sec": 58.7,
+   "J": 355.99432573538184,
+   "n_cells": 356,
+   "expanded": 428947,
+   "rss_growth_mb": 0
+  },
+  {
+   "grid": 2,
+   "target": 270,
+   "manhattan": 244,
+   "start": [
+    389,
+    293,
+    76
+   ],
+   "goal": [
+    277,
+    237,
+    0
+   ],
+   "start_dir": 0,
+   "field_sec": 13.9,
+   "geo_cells": 161.2791164713188,
+   "octile_cells": 161.279116471319,
+   "ok": true,
+   "sec": 33.9,
+   "J": 136.09968875941198,
+   "n_cells": 112,
+   "expanded": 432861,
+   "rss_growth_mb": 0
+  },
+  {
+   "grid": 2,
+   "target": 270,
+   "manhattan": 233,
+   "start": [
+    212,
+    259,
+    4
+   ],
+   "goal": [
+    23,
+    299,
+    0
+   ],
+   "start_dir": 0,
+   "field_sec": 14.4,
+   "geo_cells": 206.8398914757068,
+   "octile_cells": 206.83989147570693,
+   "ok": true,
+   "sec": 3.8,
+   "J": 173.35364797962714,
+   "n_cells": 189,
+   "expanded": 64003,
+   "rss_growth_mb": 0
+  },
+  {
+   "grid": 2,
+   "target": 270,
+   "manhattan": 252,
+   "start": [
+    4,
+    208,
+    32
+   ],
+   "goal": [
+    133,
+    299,
+    0
+   ],
+   "start_dir": 0,
+   "field_sec": 10.7,
+   "geo_cells": 176.86422602221626,
+   "octile_cells": 176.86422602221668,
+   "ok": true,
+   "sec": 1.3,
+   "J": 150.35570194788446,
+   "n_cells": 129,
+   "expanded": 20865,
+   "rss_growth_mb": 0
+  },
+  {
+   "grid": 2,
+   "target": 500,
+   "manhattan": 441,
+   "start": [
+    306,
+    133,
+    9
+   ],
+   "goal": [
+    40,
+    299,
+    0
+   ],
+   "start_dir": 0,
+   "field_sec": 14.0,
+   "geo_cells": 337.6199865606963,
+   "octile_cells": 337.6199865606958,
+   "ok": true,
+   "sec": 49.5,
+   "J": 278.7209730167804,
+   "n_cells": 266,
+   "expanded": 479889,
+   "rss_growth_mb": 0
+  },
+  {
+   "grid": 2,
+   "target": 500,
+   "manhattan": 452,
+   "start": [
+    270,
+    291,
+    78
+   ],
+   "goal": [
+    399,
+    46,
+    0
+   ],
+   "start_dir": 0,
+   "field_sec": 14.8,
+   "geo_cells": 323.2248546713994,
+   "octile_cells": 323.2248546714003,
+   "ok": true,
+   "sec": 321.0,
+   "J": 266.46600801047794,
+   "n_cells": 245,
+   "expanded": 654791,
+   "rss_growth_mb": 0
+  },
+  {
+   "grid": 2,
+   "target": 500,
+   "manhattan": 434,
+   "start": [
+    171,
+    104,
+    88
+   ],
+   "goal": [
+    399,
+    299,
+    77
+   ],
+   "start_dir": 0,
+   "field_sec": 13.9,
+   "geo_cells": 317.3532502830403,
+   "octile_cells": 312.2678543599071,
+   "ok": true,
+   "sec": 10.4,
+   "J": 267.62936647784653,
+   "n_cells": 228,
+   "expanded": 249168,
+   "rss_growth_mb": 0
+  },
+  {
+   "grid": 3,
+   "target": 270,
+   "manhattan": 281,
+   "start": [
+    240,
+    244,
+    13
+   ],
+   "goal": [
+    48,
+    168,
+    0
+   ],
+   "start_dir": 0,
+   "field_sec": 10.6,
+   "geo_cells": 227.61211492790008,
+   "octile_cells": 227.6121149279004,
+   "ok": true,
+   "sec": 17.5,
+   "J": 187.40775251696002,
+   "n_cells": 192,
+   "expanded": 123602,
+   "rss_growth_mb": 0
+  },
+  {
+   "grid": 3,
+   "target": 270,
+   "manhattan": 284,
+   "start": [
+    150,
+    143,
+    16
+   ],
+   "goal": [
+    195,
+    299,
+    99
+   ],
+   "start_dir": 0,
+   "field_sec": 14.7,
+   "geo_cells": 204.68240171077656,
+   "octile_cells": 204.6824017107771,
+   "ok": true,
+   "sec": 60.0,
+   "J": 176.929333377176,
+   "n_cells": 156,
+   "expanded": 550075,
+   "rss_growth_mb": 0
+  },
+  {
+   "grid": 3,
+   "target": 270,
+   "manhattan": 306,
+   "start": [
+    302,
+    108,
+    49
+   ],
+   "goal": [
+    154,
+    0,
+    99
+   ],
+   "start_dir": 0,
+   "field_sec": 10.8,
+   "geo_cells": 208.62692699608291,
+   "octile_cells": 208.6269269960834,
+   "ok": true,
+   "sec": 4.3,
+   "J": 174.2146762318468,
+   "n_cells": 148,
+   "expanded": 46684,
+   "rss_growth_mb": 0
+  },
+  {
+   "grid": 3,
+   "target": 500,
+   "manhattan": 456,
+   "start": [
+    1,
+    164,
+    42
+   ],
+   "goal": [
+    251,
+    0,
+    0
+   ],
+   "start_dir": 0,
+   "field_sec": 14.4,
+   "geo_cells": 331.28018852741025,
+   "octile_cells": 331.2801885274105,
+   "ok": true,
+   "sec": 78.2,
+   "J": 274.6605517645655,
+   "n_cells": 250,
+   "expanded": 372458,
+   "rss_growth_mb": 0
+  },
+  {
+   "grid": 3,
+   "target": 500,
+   "manhattan": 505,
+   "start": [
+    372,
+    94,
+    60
+   ],
+   "goal": [
+    0,
+    0,
+    99
+   ],
+   "start_dir": 0,
+   "field_sec": 10.5,
+   "geo_cells": 423.33172742570594,
+   "octile_cells": 423.33172742570645,
+   "ok": true,
+   "sec": 530.5,
+   "J": 347.0520405776954,
+   "n_cells": 372,
+   "expanded": 1006321,
+   "rss_growth_mb": 0
+  },
+  {
+   "grid": 3,
+   "target": 500,
+   "manhattan": 504,
+   "start": [
+    193,
+    26,
+    50
+   ],
+   "goal": [
+    11,
+    299,
+    99
+   ],
+   "start_dir": 0,
+   "field_sec": 9.7,
+   "geo_cells": 363.9608933664966,
+   "octile_cells": 363.96089336649663,
+   "ok": true,
+   "sec": 220.6,
+   "J": 300.9685191600299,
+   "n_cells": 273,
+   "expanded": 590000,
+   "rss_growth_mb": 0
   }
  ],
  "max_expand": 6000000
