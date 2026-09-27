@@ -23,6 +23,28 @@
     "expanded": 647865,
     "rss_growth_mb": 21
    }
+  },
+  {
+   "target": 270,
+   "manhattan": 285,
+   "field_sec": 18.1,
+   "field_rounds": 5,
+   "geo_cells": 191.45336017706543,
+   "octile_cells": 191.45336017706583,
+   "geodesic": {
+    "ok": true,
+    "sec": 75.2,
+    "J": 163.95403071376504,
+    "expanded": 830592,
+    "rss_growth_mb": 86
+   },
+   "octile": {
+    "ok": true,
+    "sec": 57.3,
+    "J": 163.95403071376504,
+    "expanded": 848797,
+    "rss_growth_mb": 21
+   }
   }
  ]
 }
