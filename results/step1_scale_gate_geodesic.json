@@ -1,0 +1,42 @@
+{
+ "field_vs_dijkstra": [
+  {
+   "maxdiff": 3.552713678800501e-14,
+   "inf_match": true,
+   "rounds": 3,
+   "sec": 0.049
+  },
+  {
+   "maxdiff": 3.552713678800501e-14,
+   "inf_match": true,
+   "rounds": 3,
+   "sec": 0.043
+  },
+  {
+   "maxdiff": 3.552713678800501e-14,
+   "inf_match": true,
+   "rounds": 3,
+   "sec": 0.038
+  },
+  {
+   "maxdiff": 3.552713678800501e-14,
+   "inf_match": true,
+   "rounds": 3,
+   "sec": 0.046
+  },
+  {
+   "maxdiff": 3.552713678800501e-14,
+   "inf_match": true,
+   "rounds": 3,
+   "sec": 0.045
+  }
+ ],
+ "octile_default_identical_60scen": true,
+ "geo_all_J_equal": true,
+ "n_searches": 1096,
+ "sec": 101.6,
+ "exp_octile_mean": 2054.109489051095,
+ "exp_geo_mean": 1943.8996350364964,
+ "exp_ratio_median": 0.9795065273925162,
+ "exp_ratio_p90": 0.9980988524442035
+}
