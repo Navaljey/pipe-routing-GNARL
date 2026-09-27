@@ -1,0 +1,26 @@
+{
+ "gate1": {
+  "obs_dim": [
+   80,
+   80
+  ],
+  "cache_same": true,
+  "checklist_same": true,
+  "n_states": 11849,
+  "mask_diff": 0,
+  "obs_diff": 0,
+  "rollout_diff": 0
+ },
+ "astar_checked": 96,
+ "astar_diff": 0,
+ "J_MAX": [
+  59.155177288213764,
+  59.155177288213764
+ ],
+ "fail_cost": [
+  2.0,
+  2.0
+ ],
+ "pack": false,
+ "heuristic": "octile"
+}

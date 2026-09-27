@@ -1,0 +1,71 @@
+{
+ "fill": 0.120001,
+ "rows": [
+  {
+   "target": 270,
+   "manhattan": 257,
+   "field_sec": 17.8,
+   "field_rounds": 6,
+   "geo_cells": 206.83021545410156,
+   "octile_cells": 206.83017606756684,
+   "geodesic": {
+    "ok": true,
+    "sec": 54.8,
+    "J": 177.46000969915664,
+    "expanded": 638416,
+    "rss_growth_mb": 587
+   },
+   "octile": {
+    "ok": true,
+    "sec": 36.8,
+    "J": 177.46000969915664,
+    "expanded": 647865,
+    "rss_growth_mb": 21
+   }
+  },
+  {
+   "target": 270,
+   "manhattan": 285,
+   "field_sec": 15.2,
+   "field_rounds": 5,
+   "geo_cells": 191.4532928466797,
+   "octile_cells": 191.45336017706583,
+   "geodesic": {
+    "ok": true,
+    "sec": 69.0,
+    "J": 163.95403071376504,
+    "expanded": 836349,
+    "rss_growth_mb": 98
+   },
+   "octile": {
+    "ok": true,
+    "sec": 55.4,
+    "J": 163.95403071376504,
+    "expanded": 848797,
+    "rss_growth_mb": 1
+   }
+  },
+  {
+   "target": 270,
+   "manhattan": 230,
+   "field_sec": 15.2,
+   "field_rounds": 5,
+   "geo_cells": 178.6736297607422,
+   "octile_cells": 178.6736602614391,
+   "geodesic": {
+    "ok": true,
+    "sec": 24.4,
+    "J": 152.1922965104584,
+    "expanded": 137338,
+    "rss_growth_mb": 0
+   },
+   "octile": {
+    "ok": true,
+    "sec": 4.3,
+    "J": 152.1922965104584,
+    "expanded": 76613,
+    "rss_growth_mb": 0
+   }
+  }
+ ]
+}
