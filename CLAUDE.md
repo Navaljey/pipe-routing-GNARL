@@ -31,7 +31,7 @@ Step 1 1차 런 실패 — τ 붕괴 + h 드리프트로 특정 (§19) /
 
 | | 작업 | 상태 |
 |---|---|---|
-| 1 | **D-o 비공개 서포트 표 접근** — 레포 `Navaljey/pipe-support-standard` + 환경 변수 | 🚨 **소유자 조치 필요.** 라벨의 선행 조건 |
+| 1 | **D-o 비공개 서포트 표 접근** — 절차는 **`docs/v3_private_standard_setup.md`**. PAT 발급 → Colab Secrets → tarball → 하드 스톱 2중 | 🚨 **소유자 조치 필요.** 라벨의 선행 조건 |
 | 2 | **D-m 하드 스톱** — ① 폐기용 격리 ② **출처 불일치** (`source=="private"` · sha256 추가) / ③ 묶임 교차 검증은 **보류** | ✅ 먼저 할 것 |
 | 3 | **D-n `placed` 관측 채널** — 권고: 고정 장애물 채널에 합친다 | ✅ D-i 보다 먼저 |
 | 4 | **D-i 비용 편향 채널 형태** — 권고 (ii) 놓인 배관별 병합 매력도 스칼라 | ✅ |
@@ -120,6 +120,7 @@ Step 1 붕괴 대응 A~D 손잡이 A/B 는 **보류**한다. 계약 기반 1단�
 |---|---|
 | **`docs/v3_route_conflict.md`** | **노선 개정의 근거.** 보존/개정/이연 분류, 자산 재배치 |
 | **`docs/v3_decisions_pending.md`** | **미결정 항목 추적.** 🚨 D-o · ★ D-m · D-n · D-i 가 남아 있다 |
+| **`docs/v3_private_standard_setup.md`** | 🚨 **D-o 절차.** 비공개 표 접근 · 하드 스톱 2중 · 라벨 보관(D78) |
 | `docs/v3_compute_environment.md` | Colab 이 필요한 이유, 역할 분담, 측정 체크리스트 |
 | `step1_train.ipynb` | 기존 노선 Step 1 학습. **개조 전까지 실행 금지** (§0) |
 | `g3_colab.ipynb` | G3 검증 도구. **동결** — 재현·재측정 용도로만 |
