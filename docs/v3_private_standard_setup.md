@@ -197,10 +197,15 @@ os.environ['PIPE_SUPPORT_STANDARD'] = str(fetch_private_standard())
 그 안에서 **폴더 업로드**로 `tables` 폴더를 넣는다.
 
 ```
-내 드라이브/pipe-support-standard/tables/
+내 드라이브/<원하는 위치>/pipe-support-standard/tables/
     angle_weights.json
     type_A.json  type_B.json  type_C.json  type_D1.json  type_D2.json
 ```
+
+**상위 폴더는 자유다.** 단 Colab 경로에 그대로 반영해야 한다 — 예를 들어
+`내 드라이브 > Papers > pipe-support-standard` 에 두었으면 `ROOT` 는
+`/content/drive/MyDrive/Papers/pipe-support-standard` 다. **`tables/` 이름만
+고정**이다 (로더가 `<root>/tables/type_A.json` 으로 판정한다).
 
 > ⚠️ **`source/`(원본 사진)는 올리지 않는다.** 채점에 안 쓰이고 D78 상 비공개
 > 레포에만 있어야 한다. `figures/`·`work/`·`tools/` 도 불필요하다.
@@ -212,17 +217,29 @@ from google.colab import drive
 drive.mount('/content/drive')          # 권한 팝업 → 계정 선택 → 허용
 
 import os, pathlib, hashlib
-ROOT = '/content/drive/MyDrive/pipe-support-standard'
+ROOT = '/content/drive/MyDrive/Papers/pipe-support-standard'   # ← 실제 위치로
 os.environ['PIPE_SUPPORT_STANDARD'] = ROOT
 
-fs = sorted((pathlib.Path(ROOT) / 'tables').glob('*.json'))
+tables = pathlib.Path(ROOT) / 'tables'
+print('tables 존재:', tables.is_dir())
+
+fs = sorted(tables.glob('*.json'))
+print('파일 개수:', len(fs), '(6이어야 함)')
+for f in fs:
+    print(f'   {f.name:24s} {f.stat().st_size:>7,} bytes')
+
 h = hashlib.sha256()
 for f in fs:
     h.update(f.read_bytes())
-
-print('파일 개수:', len(fs), '(6이어야 함)')
 print('해시 :', h.hexdigest())
 print('일치 :', h.hexdigest() == EXPECTED_STD_SHA256)
+```
+
+경로를 모르면 찾는다 (Drive 가 크면 1~2분):
+
+```python
+for p in pathlib.Path('/content/drive/MyDrive').glob('**/tables/type_A.json'):
+    print('ROOT =', p.parent.parent)
 ```
 
 > 📌 경로는 영문 **`MyDrive`** 다. 화면에 "내 드라이브" 로 보여도
@@ -235,6 +252,7 @@ print('일치 :', h.hexdigest() == EXPECTED_STD_SHA256)
 | **미리보기 화면에서 복사-붙여넣기** | 줄바꿈·공백·인코딩이 달라져 바이트가 바뀐다. ZIP 이나 Download raw file 로만 받는다 |
 | **에디터로 열어서 저장(Ctrl+S)** | Windows 에서 LF → CRLF 로 바뀌어 해시가 달라진다. **보기만 하고 저장하지 않는다** |
 | **파일 누락** | 6개여야 한다. `angle_weights.json` 은 `type_*` 패턴이 아니라 특히 빠뜨리기 쉽다 |
+| **경로 오타** | `tables 존재: False` 또는 파일 0개. 해시가 `e3b0c442…` 로 시작하면 **빈 입력**이라는 뜻이다 (2026-10-20 실제로 걸렸다 — 상위 폴더 `Papers/` 누락) |
 
 #### ⑤ 이후 — 재업로드 없음
 
