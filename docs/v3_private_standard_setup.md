@@ -175,14 +175,76 @@ os.environ['PIPE_SUPPORT_STANDARD'] = str(fetch_private_standard())
 404 = 토큰은 유효한데 접근 권한 없음). 토큰 목록의 **"Never used"** 표시가 결정적이다 —
 새 토큰이 "Never used" 면 Colab 이 **다른(옛) 값**을 보내고 있다는 뜻이다.
 
-### 2.3 Drive
+### 2.3 Drive — **채택 (2026-10-20).** 업로드가 되는 컴퓨터에서 1회
 
-```python
-from google.colab import drive; drive.mount('/content/drive')
-os.environ['PIPE_SUPPORT_STANDARD'] = '/content/drive/MyDrive/<레포 사본 루트>'
+회사 컴퓨터는 정책상 **파일 업로드 자체가 막혀** 있어 §2.1 ZIP 업로드도 쓸 수 없다.
+→ **업로드가 되는 컴퓨터(집 노트북)에서 한 번 Drive 에 올려두고, 그 뒤로는
+어디서든 Colab 이 마운트해 읽는다.** Colab ↔ Drive 는 구글 서버끼리의 일이라
+회사 PC 를 거치지 않는다.
+
+#### ① 받기 (업로드 되는 컴퓨터)
+
+1. `github.com/Navaljey/pipe-support-standard`, 브랜치 **`main`** 확인
+2. **`<> Code` → Download ZIP** → 압축 풀기
+3. 쓰는 것은 **`tables/` 뿐**
+
+대안: `tables/` 의 파일마다 **Download raw file** 버튼으로 6개를 받는다 —
+`type_A · type_B · type_C · type_D1 · type_D2 · angle_weights` (`.json`)
+
+#### ② Drive 에 올리기
+
+`drive.google.com` → 내 드라이브 → 새 폴더 `pipe-support-standard` →
+그 안에서 **폴더 업로드**로 `tables` 폴더를 넣는다.
+
+```
+내 드라이브/pipe-support-standard/tables/
+    angle_weights.json
+    type_A.json  type_B.json  type_C.json  type_D1.json  type_D2.json
 ```
 
-회사 컴퓨터에서 Drive 업로드가 막히면 쓸 수 없다.
+> ⚠️ **`source/`(원본 사진)는 올리지 않는다.** 채점에 안 쓰이고 D78 상 비공개
+> 레포에만 있어야 한다. `figures/`·`work/`·`tools/` 도 불필요하다.
+
+#### ③ Colab 에서 확인
+
+```python
+from google.colab import drive
+drive.mount('/content/drive')          # 권한 팝업 → 계정 선택 → 허용
+
+import os, pathlib, hashlib
+ROOT = '/content/drive/MyDrive/pipe-support-standard'
+os.environ['PIPE_SUPPORT_STANDARD'] = ROOT
+
+fs = sorted((pathlib.Path(ROOT) / 'tables').glob('*.json'))
+h = hashlib.sha256()
+for f in fs:
+    h.update(f.read_bytes())
+
+print('파일 개수:', len(fs), '(6이어야 함)')
+print('해시 :', h.hexdigest())
+print('일치 :', h.hexdigest() == EXPECTED_STD_SHA256)
+```
+
+> 📌 경로는 영문 **`MyDrive`** 다. 화면에 "내 드라이브" 로 보여도
+> `/content/drive/내 드라이브/…` 는 작동하지 않는다.
+
+#### ④ 해시가 안 맞을 때 — 함정 셋
+
+| 함정 | 결과 |
+|---|---|
+| **미리보기 화면에서 복사-붙여넣기** | 줄바꿈·공백·인코딩이 달라져 바이트가 바뀐다. ZIP 이나 Download raw file 로만 받는다 |
+| **에디터로 열어서 저장(Ctrl+S)** | Windows 에서 LF → CRLF 로 바뀌어 해시가 달라진다. **보기만 하고 저장하지 않는다** |
+| **파일 누락** | 6개여야 한다. `angle_weights.json` 은 `type_*` 패턴이 아니라 특히 빠뜨리기 쉽다 |
+
+#### ⑤ 이후 — 재업로드 없음
+
+| | 빈도 |
+|---|---|
+| 파일 업로드 | **1회** |
+| `drive.mount()` + 권한 승인 | 세션마다 (클릭 3번) |
+| 해시 확인 | 자동 (§3 하드 스톱) |
+
+> 사내 표를 개인 Drive 에 두는 것이 회사 정책상 허용되는지는 소유자 판단이다.
 
 ---
 
