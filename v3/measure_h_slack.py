@@ -84,19 +84,30 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--set", default="basic", choices=sorted(SETS))
     ap.add_argument("--out", default="out/h_slack.json")
+    ap.add_argument("--summarize-only", action="store_true",
+                    help="이미 쌓인 .jsonl 로 요약만 만든다 (중단 복구용)")
     a = ap.parse_args(argv)
+    stream = pathlib.Path(a.out).with_suffix(".jsonl")   # 증분 기록 — OOM/중단에도 남는다
 
     files = []
     for d in SETS[a.set]:
         files += sorted((SK / "scenarios" / d).glob("*.json"))
 
     rows, t0 = [], time.perf_counter()
-    for f in files:
+    if a.summarize_only:
+        rows = [json.loads(l) for l in stream.read_text(encoding="utf-8").splitlines() if l.strip()]
+        print(f"  .jsonl 에서 {len(rows)} 라우트 복구")
+    done = {(r["scenario"], r["pipe_id"]) for r in rows}
+    for f in [] if a.summarize_only else files:
         sc = load(f)
         for p in sc.pipes:
+            if (f.stem, p.id) in done:
+                continue
             row = measure(sc, p)
             row["scenario"] = f.stem
             rows.append(row)
+            with stream.open("a", encoding="utf-8") as fh:        # 한 줄 쓰고 flush
+                fh.write(json.dumps(row, ensure_ascii=False) + "\n")
             print(f"  {f.stem:12s} {p.id:5s} {p.nominal_size:>5s} "
                   f"{'T5' if row['gravity'] else 'T1'} {row['status']:16s} "
                   f"h0={row['h_start']:9.1f} "
@@ -128,6 +139,8 @@ def main(argv=None) -> int:
                       group_stats(hi, f"서포트 비중 > {cut:.1%}"),
                       group_stats(t1, "T1 압력관"), group_stats(t5, "T5 중력관")],
            "routes": rows}
+    out["note_oom"] = ("라우트 1개 이상이 OOM·중단으로 빠졌을 수 있다 — n 을 확인할 것. "
+                       "원자료는 .jsonl 에 증분 기록된다")
     p = pathlib.Path(a.out)
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
