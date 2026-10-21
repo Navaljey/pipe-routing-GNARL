@@ -56,7 +56,7 @@ def measure_pipe(sc, pipe, spec: MeasureSpec, limit: int):
         "measure_sec": round(r.stats.measure_sec, 3) if r.stats else 0.0,
         "n_samples": len(rows),
         "samples": [{"expanded": x["expanded"], "open_viable": x["open_viable"],
-                     "dom_checked": x["dom_checked"],
+                     "dom_checked": x["dom_checked"], "f_min": x["f_min"],
                      "focal": {str(k): v for k, v in x["focal"].items()}} for x in rows],
     }
 
