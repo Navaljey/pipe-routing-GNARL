@@ -93,11 +93,17 @@ def main(argv=None) -> int:
     for d in SETS[a.set]:
         files += sorted((SK / "scenarios" / d).glob("*.json"))
 
-    rows, t0 = [], time.perf_counter()
-    if a.summarize_only:
-        rows = [json.loads(l) for l in stream.read_text(encoding="utf-8").splitlines() if l.strip()]
-        print(f"  .jsonl 에서 {len(rows)} 라우트 복구")
-    done = {(r["scenario"], r["pipe_id"]) for r in rows}
+    t0 = time.perf_counter()
+    # 이미 쌓인 .jsonl 은 항상 읽는다 — 재개의 근거다. 안 읽으면 중복이 쌓인다
+    by_key = {}
+    if stream.exists():
+        for line in stream.read_text(encoding="utf-8").splitlines():
+            if line.strip():
+                r = json.loads(line)
+                by_key[(r["scenario"], r["pipe_id"])] = r   # 뒤의 것이 이긴다
+        print(f"  .jsonl 에서 {len(by_key)} 라우트 복구")
+    rows = list(by_key.values())
+    done = set(by_key)
     for f in [] if a.summarize_only else files:
         sc = load(f)
         for p in sc.pipes:
