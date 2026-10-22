@@ -16,3 +16,10 @@ step1_history.json
 step1_autoresearch.json
 step1_*.png
 checkpoint_step1*
+
+# 라벨 — 비공개 서포트 표에서 나온 서포트 무게가 들어 있다 (D78).
+# 이 레포는 공개이므로 커밋 금지. Drive 또는 비공개 레포에 둔다.
+# 절차: docs/v3_private_standard_setup.md §3
+labels/
+*.label.json
+support_standard*.json
