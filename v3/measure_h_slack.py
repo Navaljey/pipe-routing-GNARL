@@ -89,8 +89,15 @@ def main(argv=None) -> int:
     ap.add_argument("--out", default="out/h_slack.json")
     ap.add_argument("--summarize-only", action="store_true",
                     help="이미 쌓인 .jsonl 로 요약만 만든다 (중단 복구용)")
+    ap.add_argument("--mem-cap-gb", type=float, default=5.5,
+                    help="라우트 하나가 컨테이너를 넘기지 못하게 (OOM 대신 MemoryError)")
     standard_guard.add_argument(ap)
     a = ap.parse_args(argv)
+    if a.mem_cap_gb > 0:
+        import resource
+        cap = int(a.mem_cap_gb * (1 << 30))
+        resource.setrlimit(resource.RLIMIT_AS, (cap, cap))
+        print(f"  메모리 상한 {a.mem_cap_gb} GB — 넘는 라우트는 status=memory_exhausted")
     std = standard_guard.resolve(a.allow_public_standard, what="측정")
     print("  " + standard_guard.banner(std))
     stream = pathlib.Path(a.out).with_suffix(".jsonl")   # 증분 기록 — OOM/중단에도 남는다
@@ -115,7 +122,15 @@ def main(argv=None) -> int:
         for p in sc.pipes:
             if (f.stem, p.id) in done:
                 continue
-            row = measure(sc, p)
+            try:
+                row = measure(sc, p)
+            except MemoryError:
+                # 2026-10-26 OOM (RSS 6.1 GB) 로 204 라우트를 날린 적이 있다 —
+                # 이제 그 라우트만 떨어지고 측정은 계속된다
+                row = {"pipe_id": p.id, "size": p.nominal_size,
+                       "gravity": bool(p.gravity_pipe), "status": "memory_exhausted",
+                       "h_start": float("nan"), "expanded": 0, "sec": 0.0,
+                       "mem_cap_gb": a.mem_cap_gb}
             row["scenario"] = f.stem
             rows.append(row)
             with stream.open("a", encoding="utf-8") as fh:        # 한 줄 쓰고 flush
@@ -146,6 +161,7 @@ def main(argv=None) -> int:
            "n": len(rows), "n_ok": len(ok),
            "n_budget_exhausted": sum(1 for r in rows if r["status"] == "timeout"),
            "n_unreachable": sum(1 for r in rows if r["status"] == "unreachable"),
+           "n_memory_exhausted": sum(1 for r in rows if r["status"] == "memory_exhausted"),
            "support_share_cut": round(cut, 4),
            "groups": [group_stats(ok, "전체 ok"), group_stats(lo, f"서포트 비중 ≤ {cut:.1%}"),
                       group_stats(hi, f"서포트 비중 > {cut:.1%}"),
@@ -158,7 +174,7 @@ def main(argv=None) -> int:
     p.write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
 
     print(f"\n라우트 {out['n']} (ok {out['n_ok']} · 예산소진 {out['n_budget_exhausted']} · "
-          f"도달불가 {out['n_unreachable']})  {wall:.0f}s")
+          f"도달불가 {out['n_unreachable']} · 메모리 {out['n_memory_exhausted']})  {wall:.0f}s")
     print(f"{'그룹':<22} {'n':>4} {'느슨함 중앙':>11} {'p10':>7} {'p90':>7} "
           f"{'서포트비중':>10} {'확장 중앙':>10}")
     for gp in out["groups"]:
