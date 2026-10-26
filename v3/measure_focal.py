@@ -118,6 +118,8 @@ def main(argv=None) -> int:
     ap.add_argument("--scenarios", type=int, default=0, help="앞에서 N개만 (0 = 전부)")
     ap.add_argument("--pipes", type=int, default=0, help="시나리오당 앞 N개만 (0 = 전부)")
     ap.add_argument("--out", default="out/focal.json")
+    ap.add_argument("--summarize-only", action="store_true",
+                    help="이미 쌓인 .jsonl 로 요약만 만든다 (중단 복구용)")
     standard_guard.add_argument(ap)
     a = ap.parse_args(argv)
     std = standard_guard.resolve(a.allow_public_standard, what="측정")
@@ -127,14 +129,32 @@ def main(argv=None) -> int:
     files = scenario_files(a.set)
     if a.scenarios:
         files = files[:a.scenarios]
-    routes, t0 = [], time.perf_counter()
-    for f in files:
+
+    # 증분 기록 — OOM·중단·타임아웃에도 남는다 (h 느슨함 측정에서 한 번 당했다)
+    stream = pathlib.Path(a.out).with_suffix(".jsonl")
+    by_key = {}
+    if stream.exists():
+        for line in stream.read_text(encoding="utf-8").splitlines():
+            if line.strip():
+                r = json.loads(line)
+                by_key[(r["scenario"], r["pipe_id"])] = r      # 뒤의 것이 이긴다
+        print(f"  .jsonl 에서 {len(by_key)} 라우트 복구")
+    routes = list(by_key.values())
+    done = set(by_key)
+
+    t0 = time.perf_counter()
+    for f in [] if a.summarize_only else files:
         sc = load(f)
         pipes = sc.pipes[:a.pipes] if a.pipes else sc.pipes
         for p in pipes:
+            if (f.stem, p.id) in done:
+                continue
             row = measure_pipe(sc, p, spec, a.limit)
             row["scenario"] = f.stem
             routes.append(row)
+            stream.parent.mkdir(parents=True, exist_ok=True)
+            with stream.open("a", encoding="utf-8") as fh:
+                fh.write(json.dumps(row, ensure_ascii=False) + "\n")
             print(f"  {f.stem:12s} {p.id:5s} {p.nominal_size:>5s} "
                   f"{'T5' if row['gravity'] else 'T1'} {row['status']:17s} "
                   f"exp={row['expanded']:>8,d} open={row['samples'][-1]['open_viable'] if row['samples'] else 0:>7,d} "
@@ -146,6 +166,7 @@ def main(argv=None) -> int:
            "skeleton_commit": os.popen(f"git -C {SK} rev-parse HEAD").read().strip(),
            "grid": "G0", "support_standard": std, "setting": "단일 배관 (placed=(), reserve=False), support_cost=True (D57)",
            "note": "|FOCAL| 은 순수 A* 전개 순서에서 쟀다 — 포컬 탐색 자체 순서와는 다를 수 있다",
+           "resumed_from_jsonl": len(by_key), "stream": str(stream),
            "wall_sec": round(wall, 1), "summary": summarize(routes, spec.eps_list), "routes": routes}
     p = pathlib.Path(a.out)
     p.parent.mkdir(parents=True, exist_ok=True)
