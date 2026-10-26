@@ -44,7 +44,12 @@ def scenario_files(set_name: str) -> list:
 
 
 def measure_pipe(sc, pipe, spec: MeasureSpec, limit: int):
-    """단일 배관 = 다른 배관 없음·예약 없음 (1단계 E1 단일 배관 설정)."""
+    """단일 배관 = 다른 배관 없음·예약 없음 (1단계 E1 단일 배관 설정).
+
+    ⚠️ 메모리: 라우트 하나가 컨테이너를 넘길 수 있다 (2026-10-26 OOM, RSS 6.1 GB —
+    확장 200k 에서 `g_best`·`parent`·`closed` 가 커진다). `main` 이 RLIMIT_AS 를 걸어
+    **그 라우트만 `MemoryError` 로 떨어지게** 하고, 측정은 다음 라우트로 넘어간다.
+    """
     t0 = time.perf_counter()
     g = LayeredGraph(sc, pipe, (), local_lines=False, support_cost=True, reserved=(), grid=G0)
     build = time.perf_counter() - t0
@@ -100,6 +105,7 @@ def summarize(routes, eps_list):
         "n_routes": len(routes), "n_ok": len(ok),
         "n_budget_exhausted": sum(1 for r in routes if r["status"] == "budget_exhausted"),
         "n_unreachable": sum(1 for r in routes if r["status"] == "unreachable"),
+        "n_memory_exhausted": sum(1 for r in routes if r["status"] == "memory_exhausted"),
         "expanded_median": pct(exp, 50), "expanded_p90": pct(exp, 90), "expanded_max": max(exp) if exp else None,
         "open_viable_median": pct(viable, 50), "open_viable_max": max(viable) if viable else None,
         "samples_without_dominance_check": unchecked,
@@ -120,8 +126,15 @@ def main(argv=None) -> int:
     ap.add_argument("--out", default="out/focal.json")
     ap.add_argument("--summarize-only", action="store_true",
                     help="이미 쌓인 .jsonl 로 요약만 만든다 (중단 복구용)")
+    ap.add_argument("--mem-cap-gb", type=float, default=5.5,
+                    help="라우트 하나가 컨테이너를 넘기지 못하게 하는 상한 (OOM → MemoryError)")
     standard_guard.add_argument(ap)
     a = ap.parse_args(argv)
+    if a.mem_cap_gb > 0:
+        import resource
+        cap = int(a.mem_cap_gb * (1 << 30))
+        resource.setrlimit(resource.RLIMIT_AS, (cap, cap))
+        print(f"  메모리 상한 {a.mem_cap_gb} GB — 넘는 라우트는 status=memory_exhausted 로 기록")
     std = standard_guard.resolve(a.allow_public_standard, what="측정")
     print("  " + standard_guard.banner(std))
 
@@ -149,7 +162,14 @@ def main(argv=None) -> int:
         for p in pipes:
             if (f.stem, p.id) in done:
                 continue
-            row = measure_pipe(sc, p, spec, a.limit)
+            try:
+                row = measure_pipe(sc, p, spec, a.limit)
+            except MemoryError:
+                row = {"pipe_id": p.id, "size": p.nominal_size,
+                       "gravity": bool(p.gravity_pipe), "status": "memory_exhausted",
+                       "cost": None, "expanded": 0, "generated": 0, "search_sec": 0.0,
+                       "graph_sec": 0.0, "measure_sec": 0.0, "n_samples": 0, "samples": [],
+                       "mem_cap_gb": a.mem_cap_gb}
             row["scenario"] = f.stem
             routes.append(row)
             stream.parent.mkdir(parents=True, exist_ok=True)
@@ -174,7 +194,8 @@ def main(argv=None) -> int:
 
     s = out["summary"]
     print(f"\n라우트 {s['n_routes']} (ok {s['n_ok']} · 예산소진 {s['n_budget_exhausted']} · "
-          f"도달불가 {s['n_unreachable']})  확장 중앙 {s['expanded_median']:,}  {wall:.0f}s")
+          f"도달불가 {s['n_unreachable']} · 메모리 {s['n_memory_exhausted']})  "
+          f"확장 중앙 {s['expanded_median']:,}  {wall:.0f}s")
     print(f"{'eps':>7} {'중앙':>6} {'p75':>6} {'p90':>6} {'최대':>7} {'=1 비율':>8} {'≥2 비율':>8} {'≥5 비율':>8}")
     for e, d in s["per_eps"].items():
         print(f"{e:>7} {d['sample_median']:>6} {d['sample_p75']:>6} {d['sample_p90']:>6} "
