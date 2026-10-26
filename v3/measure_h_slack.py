@@ -89,8 +89,11 @@ def main(argv=None) -> int:
     ap.add_argument("--out", default="out/h_slack.json")
     ap.add_argument("--summarize-only", action="store_true",
                     help="이미 쌓인 .jsonl 로 요약만 만든다 (중단 복구용)")
-    ap.add_argument("--mem-cap-gb", type=float, default=5.5,
-                    help="라우트 하나가 컨테이너를 넘기지 못하게 (OOM 대신 MemoryError)")
+    # ⚠️ RLIMIT_AS 는 **가상 주소 공간**을 센다. 컴파일 A\*(numba/LLVM)는 RSS 와 무관하게
+    # 큰 주소 공간을 예약하므로 5.5 GB 를 걸면 205 중 109 라우트가 MemoryError 로 떨어졌다
+    # (2026-10-27 1차 재측정 폐기). 기본값 0 = 걸지 않고, OOM 은 아래 attempt 표시로 넘긴다.
+    ap.add_argument("--mem-cap-gb", type=float, default=0.0,
+                    help="0 = 걸지 않는다 (권장). 양수면 RLIMIT_AS — numba 와 맞지 않는다")
     standard_guard.add_argument(ap)
     a = ap.parse_args(argv)
     if a.mem_cap_gb > 0:
@@ -117,11 +120,29 @@ def main(argv=None) -> int:
         print(f"  .jsonl 에서 {len(by_key)} 라우트 복구")
     rows = list(by_key.values())
     done = set(by_key)
+
+    # OOM 으로 커널에 죽으면 파이썬이 아무것도 못 쓴다 — 그래서 **측정 전에** 라우트를
+    # 적어 두고, 다시 시작했을 때 그 표시가 남아 있으면 그 라우트를 oom_killed 로 넘긴다.
+    # 이게 없으면 재시도 루프가 같은 라우트에서 영원히 죽는다.
+    attempt = pathlib.Path(a.out).with_suffix(".attempt")
+    if attempt.exists():
+        key = tuple(attempt.read_text(encoding="utf-8").strip().split("\t"))
+        if len(key) == 2 and key not in done:
+            row = {"scenario": key[0], "pipe_id": key[1], "status": "oom_killed",
+                   "size": None, "gravity": None, "h_start": float("nan"),
+                   "expanded": 0, "sec": 0.0}
+            rows.append(row)
+            done.add(key)
+            with stream.open("a", encoding="utf-8") as fh:
+                fh.write(json.dumps(row, ensure_ascii=False) + "\n")
+            print(f"  ⚠️ 이전 실행이 {key[0]} {key[1]} 에서 커널에 죽었다 → oom_killed 로 넘긴다")
+        attempt.unlink(missing_ok=True)
     for f in [] if a.summarize_only else files:
         sc = load(f)
         for p in sc.pipes:
             if (f.stem, p.id) in done:
                 continue
+            attempt.write_text(f"{f.stem}\t{p.id}", encoding="utf-8")
             try:
                 row = measure(sc, p)
             except MemoryError:
@@ -135,6 +156,7 @@ def main(argv=None) -> int:
             rows.append(row)
             with stream.open("a", encoding="utf-8") as fh:        # 한 줄 쓰고 flush
                 fh.write(json.dumps(row, ensure_ascii=False) + "\n")
+            attempt.unlink(missing_ok=True)                      # 이 라우트는 끝났다
             print(f"  {f.stem:12s} {p.id:5s} {p.nominal_size:>5s} "
                   f"{'T5' if row['gravity'] else 'T1'} {row['status']:16s} "
                   f"h0={row['h_start']:9.1f} "
@@ -162,6 +184,7 @@ def main(argv=None) -> int:
            "n_budget_exhausted": sum(1 for r in rows if r["status"] == "timeout"),
            "n_unreachable": sum(1 for r in rows if r["status"] == "unreachable"),
            "n_memory_exhausted": sum(1 for r in rows if r["status"] == "memory_exhausted"),
+           "n_oom_killed": sum(1 for r in rows if r["status"] == "oom_killed"),
            "support_share_cut": round(cut, 4),
            "groups": [group_stats(ok, "전체 ok"), group_stats(lo, f"서포트 비중 ≤ {cut:.1%}"),
                       group_stats(hi, f"서포트 비중 > {cut:.1%}"),
@@ -174,7 +197,8 @@ def main(argv=None) -> int:
     p.write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
 
     print(f"\n라우트 {out['n']} (ok {out['n_ok']} · 예산소진 {out['n_budget_exhausted']} · "
-          f"도달불가 {out['n_unreachable']} · 메모리 {out['n_memory_exhausted']})  {wall:.0f}s")
+          f"도달불가 {out['n_unreachable']} · 메모리 {out['n_memory_exhausted']} · "
+          f"OOM {out['n_oom_killed']})  {wall:.0f}s")
     print(f"{'그룹':<22} {'n':>4} {'느슨함 중앙':>11} {'p10':>7} {'p90':>7} "
           f"{'서포트비중':>10} {'확장 중앙':>10}")
     for gp in out["groups"]:
