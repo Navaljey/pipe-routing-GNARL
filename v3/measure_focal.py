@@ -30,6 +30,7 @@ from pipe_routing.layered import G0, LayeredGraph, heuristic_factory   # noqa: E
 from pipe_routing.scenario import load                                 # noqa: E402
 
 from v3.focal import MeasureSpec, focal_search                         # noqa: E402
+from v3 import standard_guard                                          # noqa: E402
 
 SETS = {"basic": ["manual", "procedural"], "manual": ["manual"], "procedural": ["procedural"],
         "stair": ["stair"], "dense": ["dense"]}
@@ -117,7 +118,10 @@ def main(argv=None) -> int:
     ap.add_argument("--scenarios", type=int, default=0, help="앞에서 N개만 (0 = 전부)")
     ap.add_argument("--pipes", type=int, default=0, help="시나리오당 앞 N개만 (0 = 전부)")
     ap.add_argument("--out", default="out/focal.json")
+    standard_guard.add_argument(ap)
     a = ap.parse_args(argv)
+    std = standard_guard.resolve(a.allow_public_standard, what="측정")
+    print("  " + standard_guard.banner(std))
 
     spec = MeasureSpec(every=a.every, max_samples=a.max_samples)
     files = scenario_files(a.set)
@@ -140,7 +144,7 @@ def main(argv=None) -> int:
 
     out = {"set": a.set, "measure_limit": a.limit, "every": a.every,
            "skeleton_commit": os.popen(f"git -C {SK} rev-parse HEAD").read().strip(),
-           "grid": "G0", "setting": "단일 배관 (placed=(), reserve=False), support_cost=True (D57)",
+           "grid": "G0", "support_standard": std, "setting": "단일 배관 (placed=(), reserve=False), support_cost=True (D57)",
            "note": "|FOCAL| 은 순수 A* 전개 순서에서 쟀다 — 포컬 탐색 자체 순서와는 다를 수 있다",
            "wall_sec": round(wall, 1), "summary": summarize(routes, spec.eps_list), "routes": routes}
     p = pathlib.Path(a.out)

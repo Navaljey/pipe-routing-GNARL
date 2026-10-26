@@ -37,6 +37,9 @@ from pipe_routing.layered import (EXPAND_BUDGET, G0, LayeredGraph,   # noqa: E40
                                   heuristic_factory, make_layered_router)
 from pipe_routing.scenario import load                                # noqa: E402
 
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
+from v3 import standard_guard                                          # noqa: E402
+
 SETS = {"basic": ["manual", "procedural"], "manual": ["manual"], "procedural": ["procedural"],
         "stair": ["stair"], "dense": ["dense"]}
 
@@ -86,7 +89,10 @@ def main(argv=None) -> int:
     ap.add_argument("--out", default="out/h_slack.json")
     ap.add_argument("--summarize-only", action="store_true",
                     help="이미 쌓인 .jsonl 로 요약만 만든다 (중단 복구용)")
+    standard_guard.add_argument(ap)
     a = ap.parse_args(argv)
+    std = standard_guard.resolve(a.allow_public_standard, what="측정")
+    print("  " + standard_guard.banner(std))
     stream = pathlib.Path(a.out).with_suffix(".jsonl")   # 증분 기록 — OOM/중단에도 남는다
 
     files = []
@@ -132,7 +138,7 @@ def main(argv=None) -> int:
     t5 = [r for r in ok if r["gravity"]]
 
     out = {"set": a.set, "skeleton_commit": os.popen(f"git -C {SK} rev-parse HEAD").read().strip(),
-           "grid": "G0", "expand_budget": EXPAND_BUDGET,
+           "grid": "G0", "support_standard": std, "expand_budget": EXPAND_BUDGET,
            "setting": "단일 배관 (placed=(), reserve=False), support_cost=True (D57), skeleton 컴파일 A*",
            "definition": {"looseness": "C* / h(start) — C* = 라우터 최적 비용(직관+엘보+추정 서포트)",
                           "support_share": "J_support_est / C*"},
