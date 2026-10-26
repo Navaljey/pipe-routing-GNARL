@@ -108,11 +108,27 @@ if __name__ == "__main__":
     ap.add_argument("--scenarios", type=int, default=0, help="앞에서 N개만 (0 = 전부)")
     ap.add_argument("--limit", type=int, default=LIMIT,
                     help="확장 상한. 작게 주면 '같은 지점에서 소진'을 본다")
+    ap.add_argument("--ok-under", type=int, default=0, metavar="N",
+                    help="측정 .jsonl 에서 ok 로 끝났고 확장 ≤ N 인 라우트만 고른다 "
+                         "— 경로·비용까지 비교되는 사례를 싸게 모은다")
+    ap.add_argument("--jsonl", default="out/focal_basic_priv.jsonl")
     a = ap.parse_args()
     std = standard_guard.resolve(False, what="등가성 시험")
     print("  " + standard_guard.banner(std))
+    cases = _cases(a.set, a.scenarios)
+    if a.ok_under:
+        import json
+        want = set()
+        for line in pathlib.Path(a.jsonl).read_text(encoding="utf-8").splitlines():
+            if line.strip():
+                r = json.loads(line)
+                if r["status"] == "ok" and r["expanded"] <= a.ok_under:
+                    want.add((r["scenario"], r["pipe_id"]))
+        cases = [c for c in cases if (c[0], c[2].id) in want]
+        print(f"  .jsonl 에서 ok·확장 ≤ {a.ok_under:,} 라우트 {len(cases)} 선택")
+
     bad = 0
-    for name, sc, pipe in _cases(a.set, a.scenarios):
+    for name, sc, pipe in cases:
         try:
             ref, got = compare(sc, pipe, a.limit)
             print(f"  ✅ {name:12s} {pipe.id:5s} {pipe.nominal_size:>5s} {got.status:17s} "
