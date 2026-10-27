@@ -73,6 +73,7 @@ def main(argv=None) -> int:
     y_pe: list[np.ndarray] = []
     y_sup: list[np.ndarray] = []
     y_pen: list[np.ndarray] = []
+    y_hops: list[np.ndarray] = []
     hv: list[np.ndarray] = []
     meta: list[tuple] = []        # (라우트 인덱스, 시드, 구경, 중력관) — 밴드별 보고용 (D-v)
     t0 = time.perf_counter()
@@ -92,6 +93,11 @@ def main(argv=None) -> int:
         y_pe.append(np.asarray(r["rem_pe"], dtype=np.float32))
         y_sup.append(np.asarray(r["rem_sup"], dtype=np.float32))
         y_pen.append(np.asarray(r["rem_pen"], dtype=np.float32))
+        # ★ 남은 **홉 수** (목표까지 몇 상태인가). 라벨 파일에서 바로 나오므로 A* 재실행 없음.
+        # 왜 필요한가 — `ĥ`(kg) 는 **비용**이고 확장 수를 줄이는 것은 **거리**다. 유계
+        # 준최적 탐색의 h vs d 구분 그대로다 (Speedy/EES). ε 보장은 OPEN 의 admissible `h`
+        # 에 걸려 있어서 priority 는 무엇이든 될 수 있다 — 그러니 속도용 양을 쓰는 것이 맞다
+        y_hops.append(np.arange(r["n_states"] - 1, -1, -1, dtype=np.float32))
         hv.append(np.asarray(r["h"], dtype=np.float32))
         meta += [(ri, r["seed"], r["size"], int(r["gravity"]))] * r["n_states"]
         if (ri + 1) % 25 == 0:
@@ -102,7 +108,7 @@ def main(argv=None) -> int:
     np.savez_compressed(
         out,
         X=np.concatenate(X), y_pe=np.concatenate(y_pe), y_sup=np.concatenate(y_sup),
-        y_pen=np.concatenate(y_pen), h=np.concatenate(hv),
+        y_pen=np.concatenate(y_pen), y_hops=np.concatenate(y_hops), h=np.concatenate(hv),
         route=np.asarray([m[0] for m in meta], dtype=np.int32),
         seed=np.asarray([m[1] for m in meta], dtype=np.int64),
         size=np.asarray([m[2] for m in meta]),

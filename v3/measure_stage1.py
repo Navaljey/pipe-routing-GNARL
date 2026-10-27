@@ -25,6 +25,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import math
 import pathlib
 import statistics
 import sys
@@ -73,38 +74,58 @@ class NumpyHNet:
         self.bp = float(np.asarray(sd["head_pipe.bias"]).ravel()[0])
         self.ws = np.asarray(sd["head_sup.weight"], dtype=np.float32).ravel()
         self.bs = float(np.asarray(sd["head_sup.bias"]).ravel()[0])
+        self.has_d = "head_dist.weight" in sd
+        if self.has_d:
+            self.wd = np.asarray(sd["head_dist.weight"], dtype=np.float32).ravel()
+            self.bd = float(np.asarray(sd["head_dist.bias"]).ravel()[0])
 
     @staticmethod
     def _softplus(x: float) -> float:
-        return x + np.log1p(np.exp(-x)) if x > 0 else np.log1p(np.exp(x))
+        # 수치 안정 — 큰 |x| 에서 exp 가 넘치지 않게 분기한다
+        return x + math.log1p(math.exp(-x)) if x > 0 else math.log1p(math.exp(x))
 
-    def __call__(self, x: np.ndarray, h_val: float) -> float:
+    def __call__(self, x: np.ndarray, h_val: float) -> tuple[float, float]:
+        """→ (ĥ = 남은 비용 kg, d̂ = 남은 홉 수). d̂ 머리가 없으면 d̂ = nan."""
         z = x
         for W, b in self.W:
             z = z @ W + b
+            np.clip(z, -30.0, 30.0, out=z)
             z = z / (1.0 + np.exp(-z))          # SiLU
-        return (h_val + self._softplus(float(z @ self.wp) + self.bp)
-                + self._softplus(float(z @ self.ws) + self.bs))
+        hh = (h_val + self._softplus(float(z @ self.wp) + self.bp)
+              + self._softplus(float(z @ self.ws) + self.bs))
+        dd = self._softplus(float(z @ self.wd) + self.bd) if self.has_d else float("nan")
+        return hh, dd
 
 
-def make_priority(net, ck, g, pipe, h, counter, mode: str = "h_only"):
+def make_priority(net, ck, g, pipe, h, counter, mode: str = "d_only"):
     """priority(state, g, h, f) → 작은 값을 먼저. 상태당 1회 호출이므로 비용 = c_h 다.
 
-    두 방식을 둔다 — **어느 쪽이 확장을 더 줄이는지는 측정 대상**이다.
+    **왜 `d_only` 가 기본인가 — 파일럿에서 배운 것.**
+    `ĥ`(kg)를 priority 로 쓴 1차 측정의 확장 감소가 R = 1.06~1.92 (중앙 약 1.4) 였다.
+    `ĥ` 는 **비용** 추정이고 확장 수를 줄이는 것은 **거리**다. 유계 준최적 탐색에서
+    품질은 OPEN 의 admissible `h` 와 ε 가 지키고, FOCAL 안 순서는 **목표까지 남은 홉 수**
+    `d̂` 로 잡는 것이 정석이다 (Speedy search · Explicit Estimation Search 의 h vs d).
+    ε 보장은 OPEN 쪽에 걸려 있으므로 priority 를 바꿔도 **깨지지 않는다.**
 
-    ``h_only``    `ĥ` 만 본다. 띠 안에서 "목표에 가장 가까워 보이는 것" 을 먼저 — 품질은
-                  이미 ε 가 막아 주므로 자유를 **속도에 쓴다** (§9 결론과 같은 논리).
-    ``g_plus_h``  `g + ĥ` = 추정 전체 비용. 보수적 — 품질 쪽으로 기운다.
+    ``d_only``    `d̂` = 남은 홉 수. 속도용 (기본)
+    ``h_only``    `ĥ` = 남은 비용. 1차 파일럿이 쓴 것 — 대조군으로 남긴다
+    ``g_plus_h``  `g + ĥ` = 추정 전체 비용. 가장 보수적
+    ``d_then_h``  `d̂` 우선, 동점이면 `ĥ` — 홉 수가 같을 때만 비용으로 가른다
     """
     fm = features.FeatureMaker(g, pipe)
     mu = np.asarray(ck["mu"], dtype=np.float32)
     sd = np.asarray(ck["sd"], dtype=np.float32)
-    add_g = (mode == "g_plus_h")
 
     def priority(s, gv, hv, f):
         counter[0] += 1
-        est = net((fm.one(s, hv) - mu) / sd, hv)
-        return (gv + est) if add_g else est
+        hh, dd = net((fm.one(s, hv) - mu) / sd, hv)
+        if mode == "d_only":
+            return dd
+        if mode == "h_only":
+            return hh
+        if mode == "g_plus_h":
+            return gv + hh
+        return (round(dd, 3), hh)        # d_then_h
 
     return priority
 
@@ -119,7 +140,8 @@ def main(argv=None) -> int:
     ap.add_argument("--v3-budget", type=int, default=0,
                     help="V3 쪽 확장 예산 (0 = 기준선과 같게). D97 자기 결정적 예산")
     ap.add_argument("--out", required=True)
-    ap.add_argument("--priority-mode", default="h_only", choices=["h_only", "g_plus_h"])
+    ap.add_argument("--priority-mode", default="d_only",
+                    choices=["d_only", "h_only", "g_plus_h", "d_then_h"])
     standard_guard.add_argument(ap)
     a = ap.parse_args(argv)
 

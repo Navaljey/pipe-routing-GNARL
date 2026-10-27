@@ -63,6 +63,12 @@ class HNet(nn.Module):
         self.trunk = nn.Sequential(*layers)      # depth=0 → 선형 모형 (배포 비용 하한)
         self.head_pipe = nn.Linear(d, 1)
         self.head_sup = nn.Linear(d, 1)
+        #: ★ 세 번째 머리 `d̂` = 목표까지 **남은 홉 수**. FOCAL priority 는 이것을 쓴다.
+        #: `ĥ`(kg) 는 **비용**이고 확장 수를 줄이는 것은 **거리**다 — 유계 준최적 탐색의
+        #: h vs d 구분 (Speedy search · EES). ε 보장은 OPEN 의 admissible `h` 에 걸려
+        #: 있으므로 priority 가 비용 추정일 필요가 없다. 파일럿에서 `ĥ` priority 의
+        #: 확장 감소가 R = 1.06 (사실상 0) 이었던 것이 이 구분을 놓친 결과다
+        self.head_dist = nn.Linear(d, 1)
         #: 상태 1개 추론 FLOPs — 벽시계 판정(D98)에서 이게 예산을 먹는다. §추론 예산 참조
         self.flops = sum(m.in_features * m.out_features * 2 for m in self.modules()
                          if isinstance(m, nn.Linear))
@@ -71,7 +77,8 @@ class HNet(nn.Module):
         z = self.trunk(x)
         resid = nn.functional.softplus(self.head_pipe(z).squeeze(-1))    # ≥ 0 → ĥ_pipe ≥ h
         sup = nn.functional.softplus(self.head_sup(z).squeeze(-1))       # ≥ 0
-        return h + resid, sup
+        dist = nn.functional.softplus(self.head_dist(z).squeeze(-1))     # ≥ 0 홉 수
+        return h + resid, sup, dist
 
 
 def split_by_route(route: np.ndarray, frac: float, seed: int = 0):
@@ -116,6 +123,8 @@ def main(argv=None) -> int:
     ap.add_argument("--hidden", type=int, default=256)
     ap.add_argument("--depth", type=int, default=3)
     ap.add_argument("--w-sup", type=float, default=1.0, help="정규화 후 서포트 손실 가중 (기본 1 = 동등)")
+    ap.add_argument("--w-dist", type=float, default=1.0,
+                    help="정규화 후 홉 수(d̂) 손실 가중. d̂ 가 FOCAL priority 가 쓰는 양이다")
     ap.add_argument("--val-frac", type=float, default=0.15)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--single-head", action="store_true",
@@ -128,6 +137,7 @@ def main(argv=None) -> int:
     h = d["h"].astype(np.float32)
     y_pe = d["y_pe"].astype(np.float32)
     y_sup = d["y_sup"].astype(np.float32)
+    y_hops = d["y_hops"].astype(np.float32) if "y_hops" in d else None
     route = d["route"]
     size = d["size"]
     names = list(d["names"])
@@ -147,6 +157,8 @@ def main(argv=None) -> int:
 
     s_p = float((y_pe[tr] - h[tr]).std()) or 1.0     # 잔차 척도
     s_s = float(y_sup[tr].std()) or 1.0              # 서포트 척도
+    s_d = float(y_hops[tr].std()) if y_hops is not None else 1.0     # 홉 수 척도
+    s_d = s_d or 1.0
     print(f"척도 s_p(잔차) {s_p:.2f} kg · s_s(서포트) {s_s:.2f} kg · "
           f"서포트 비중 중앙 {np.median(share[tr]):.3f}")
 
@@ -158,6 +170,7 @@ def main(argv=None) -> int:
     htr, hva = T(h[tr]), T(h[va])
     ptr, pva = T(y_pe[tr]), T(y_pe[va])
     str_, sva = T(y_sup[tr]), T(y_sup[va])
+    dtr, dva = (T(y_hops[tr]), T(y_hops[va])) if y_hops is not None else (None, None)
 
     net = HNet(X.shape[1], a.hidden, a.depth)
     print(f"망 hidden {a.hidden} × depth {a.depth} · 파라미터 "
@@ -176,13 +189,15 @@ def main(argv=None) -> int:
         tot = 0.0
         for k in range(0, n, a.batch):
             idx = perm[k:k + a.batch]
-            hp, hs = net(Xtr[idx], htr[idx])
+            hp, hs, hd = net(Xtr[idx], htr[idx])
             if a.single_head:
                 # 대조군: 합계에만 MSE. 서포트는 합의 8~9% 라 기울기도 그만큼이다
                 loss = (((hp + hs) - (ptr[idx] + str_[idx])) / (s_p + s_s)).pow(2).mean()
             else:
                 loss = (((hp - ptr[idx]) / s_p).pow(2).mean()
                         + a.w_sup * ((hs - str_[idx]) / s_s).pow(2).mean())
+            if dtr is not None:      # ★ 속도용 머리 — FOCAL priority 가 쓰는 양
+                loss = loss + a.w_dist * ((hd - dtr[idx]) / s_d).pow(2).mean()
             opt.zero_grad()
             loss.backward()
             opt.step()
@@ -191,8 +206,8 @@ def main(argv=None) -> int:
 
         net.eval()
         with torch.no_grad():
-            hp, hs = net(Xva, hva)
-            hp, hs = hp.numpy(), hs.numpy()
+            hp, hs, hd = net(Xva, hva)
+            hp, hs, hd = hp.numpy(), hs.numpy(), hd.numpy()
         mae_p = float(np.abs(hp - y_pe[va]).mean())
         mae_s = float(np.abs(hs - y_sup[va]).mean())
         tot_pred, tot_true = hp + hs, y_pe[va] + y_sup[va]
@@ -201,9 +216,14 @@ def main(argv=None) -> int:
         base_t = float(np.abs(h[va] - tot_true).mean())
         rank = pair_rank_agreement(tot_pred, tot_true, route[va], rng)
         rank_h = pair_rank_agreement(h[va], tot_true, route[va], rng)
+        mae_d = float(np.abs(hd - y_hops[va]).mean()) if y_hops is not None else None
+        # 홉 수 순서를 맞추는가 — FOCAL priority 가 실제로 쓰는 순서다
+        rank_d = (pair_rank_agreement(hd, y_hops[va], route[va], rng)
+                  if y_hops is not None else None)
         row = {"epoch": ep, "train_loss": tot / n, "MAE_pipe": mae_p, "MAE_sup": mae_s,
                "MAE_sup_norm": mae_s / s_s, "MAE_total": mae_t, "MAE_total_h_only": base_t,
-               "rank_agree": rank, "rank_agree_h_only": rank_h}
+               "rank_agree": rank, "rank_agree_h_only": rank_h,
+               "MAE_hops": mae_d, "rank_agree_hops": rank_d}
         # 서포트 비중 밴드별 (반증 가능한 예측: 비중 높은 밴드에서 더 개선돼야 한다)
         for lo, hi in SUPPORT_BANDS:
             m = (share[va] >= lo) & (share[va] < hi)
@@ -222,19 +242,22 @@ def main(argv=None) -> int:
         if ep % 5 == 0 or ep == 1:
             print(f"  ep {ep:3d} loss {row['train_loss']:.4f} · MAE_pipe {mae_p:6.2f} · "
                   f"MAE_sup {mae_s:6.2f} ({row['MAE_sup_norm']:.3f}) · MAE_tot {mae_t:6.2f} "
-                  f"(h 단독 {base_t:6.2f}) · 순위 {rank:.3f} (h 단독 {rank_h:.3f})", flush=True)
+                  f"(h 단독 {base_t:6.2f}) · 순위 {rank:.3f} (h 단독 {rank_h:.3f})"
+                  + (f" · MAE_hops {mae_d:5.2f} 순위 {rank_d:.3f}" if mae_d is not None else ""),
+                  flush=True)
 
     out = pathlib.Path(a.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     torch.save({"state_dict": net.state_dict(), "mu": mu, "sd": sd, "s_p": s_p, "s_s": s_s,
                 "names": names, "dim": X.shape[1], "hidden": a.hidden, "depth": a.depth,
+                "s_d": s_d,
                 "single_head": a.single_head, "w_sup": a.w_sup, "flops_per_state": net.flops,
                 "support_standard": str(d["support_standard"][0]),
                 "hist": hist}, out)
     last = hist[-1]
     # 구경별 (D-v)
     with torch.no_grad():
-        hp, hs = net(Xva, hva)
+        hp, hs, hd = net(Xva, hva)
     per_size = {}
     for sz in sorted(set(size[va].tolist())):
         m = size[va] == sz
