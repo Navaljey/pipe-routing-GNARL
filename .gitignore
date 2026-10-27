@@ -24,3 +24,4 @@ labels/
 *.label.json
 support_standard*.json
 out/
+logs/

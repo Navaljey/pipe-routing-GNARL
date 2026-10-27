@@ -200,3 +200,104 @@ def focal_search(space, pipe, heuristic, *, eps: float = 0.0, priority=None,
         st.measure_sec = m_sec
     return FocalResult("unreachable", None, [], expanded, generated,
                        time.perf_counter() - t0 - m_sec, eps, st)
+
+
+# ---------------------------------------------------------------------------
+# 이중 큐 포컬 탐색 — **판정용** (설계안 §15)
+# ---------------------------------------------------------------------------
+
+def focal_search_dual(space, pipe, heuristic, *, eps: float, priority,
+                      expand_limit: int | None = None, time_limit: float | None = None) -> FocalResult:
+    """`focal_search` 와 같은 탐색이지만 FOCAL 유지가 **O(log n) 분할상환**이다.
+
+    `focal_search` 는 확장마다 OPEN 전체를 훑어 FOCAL 멤버를 고른다 (참조 구현, 등가성
+    시험·|FOCAL| 측정용으로 유지). viable OPEN 중앙이 18,327 이므로 (§9.1) 확장 1회에
+    priority 평가가 1.8만 번이고, **확장 수 측정조차 끝나지 않는다.** 그래서 판정·측정은
+    이 구현으로 한다.
+
+    힙 3개
+        ``open_h``    모든 전선 항목, f 순 — `f_min` 을 읽는 곳
+        ``pending``   아직 FOCAL 에 넣지 않은 항목, f 순
+        ``focal``     FOCAL 멤버, priority 순
+
+    `f_min` 은 A\\* 에서 **비감소**이므로 문턱 `(1+ε)f_min` 도 비감소다 → 한 번 FOCAL 에
+    들어간 항목은 계속 자격을 유지한다. 그래서 `pending` 에서 문턱 이하를 **앞에서부터
+    퍼내기만** 하면 되고 되돌릴 일이 없다. 낡은·지배된 항목은 꺼낼 때 버린다 (지연 삭제).
+
+    ⚠️ 참조 구현과 **한 군데 다르다**: 참조는 `open_heap[0][0]` 을 그대로 `f_min` 으로
+    쓰고 (낡은 항목이 맨 위면 `f_min` 이 낮게 잡힌다) 이쪽은 맨 위를 먼저 청소한다.
+    둘 다 유효한 포컬 탐색이고 (1+ε) 보장도 같지만 **전개 순서가 완전히 같지는 않다.**
+    ε=0 에서는 둘 다 f 순 pop 이므로 등가성 시험(§6.2)은 그대로 성립한다.
+    """
+    t0 = time.perf_counter()
+    h = heuristic
+    start = space.start_state(pipe)
+    tie = itertools.count()
+    e0 = (h(start), next(tie), 0.0, start)
+    open_h = [e0]
+    pending = [e0]
+    focal: list = []
+    g_best = {start: 0.0}
+    parent = {start: None}
+    closed: dict = {}
+    expanded = generated = 0
+    thr = -math.inf
+
+    def live(entry) -> bool:
+        _f, _t, g, s = entry
+        return g <= g_best.get(s, math.inf) + EPS and not _dominated(closed, s, g)
+
+    while open_h or focal:
+        # ① OPEN 맨 위 청소 → 진짜 f_min → 문턱 (비감소)
+        while open_h and not live(open_h[0]):
+            heapq.heappop(open_h)
+        if open_h:
+            thr = max(thr, open_h[0][0] * (1.0 + eps) + EPS)
+        # ② pending 에서 문턱 이하를 FOCAL 로 (한 방향)
+        while pending and pending[0][0] <= thr:
+            f, t, g, s = heapq.heappop(pending)
+            if g <= g_best.get(s, math.inf) + EPS:
+                heapq.heappush(focal, (priority(s, g, f - g, f), t, f, g, s))
+        # ③ FOCAL 에서 priority 최소를 꺼낸다 (낡은 것은 버린다)
+        s = None
+        while focal:
+            _k, _t, f, g, cand = heapq.heappop(focal)
+            if live((f, _t, g, cand)):
+                s = cand
+                break
+        if s is None:
+            if not open_h:
+                break
+            continue        # 문턱이 오르면 pending 에서 더 들어온다
+
+        closed.setdefault((s.node, s.dir), []).append((s.run, s.bend, s.ends, s.hz, g))
+        expanded += 1
+
+        if space.is_goal(s, pipe):
+            chain, cur = [], s
+            while cur is not None:
+                chain.append(cur)
+                cur = parent[cur]
+            chain.reverse()
+            return FocalResult("ok", g, chain, expanded, generated, time.perf_counter() - t0, eps, None)
+
+        if expanded % 2048 == 0:
+            if ((expand_limit is not None and expanded >= expand_limit)
+                    or (time_limit is not None and time.perf_counter() - t0 > time_limit)):
+                return FocalResult("budget_exhausted", None, [], expanded, generated,
+                                   time.perf_counter() - t0, eps, None)
+
+        for nb in space.neighbors(s, pipe):
+            ng = g + space.cost(s, nb, pipe)
+            if ng + EPS < g_best.get(nb, math.inf) and not _dominated(closed, nb, ng):
+                g_best[nb] = ng
+                parent[nb] = s
+                ent = (ng + h(nb), next(tie), ng, nb)
+                heapq.heappush(open_h, ent)
+                if ent[0] <= thr:       # 이미 자격이 있으면 바로 FOCAL 로
+                    heapq.heappush(focal, (priority(nb, ng, ent[0] - ng, ent[0]), ent[1], ent[0], ng, nb))
+                else:
+                    heapq.heappush(pending, ent)
+                generated += 1
+
+    return FocalResult("unreachable", None, [], expanded, generated, time.perf_counter() - t0, eps, None)
