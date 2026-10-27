@@ -213,10 +213,11 @@ def main(argv=None) -> int:
     # 요약 — 양쪽 모두 ok 인 라우트에서만 짝지어 본다
     for eps in a.eps:
         k = f"eps_{eps}"
-        pair = [r for r in rows if r["base"]["status"] == "ok" and r[k]["status"] == "ok"]
+        pair = [r for r in rows if r["base"]["status"] == "ok" and r.get(k, {}).get("status") == "ok"]
         summ = {"n_paired": len(pair),
                 "base_ok": sum(r["base"]["status"] == "ok" for r in rows),
-                "v3_ok": sum(r[k]["status"] == "ok" for r in rows), "n_routes": len(rows)}
+                "v3_ok": sum(r.get(k, {}).get("status") == "ok" for r in rows),
+                "n_routes": len(rows), "n_v3_skipped": sum(k not in r for r in rows)}
         if pair:
             summ.update(
                 R_expanded_median=round(statistics.median(r[k]["ratio_expanded"] for r in pair), 3),
