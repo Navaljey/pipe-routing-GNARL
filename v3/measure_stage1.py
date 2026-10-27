@@ -132,7 +132,7 @@ def make_priority(net, ck, g, pipe, h, counter, mode: str = "d_only"):
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description="1단계 측정 (검증 시드)")
-    ap.add_argument("--ckpt", required=True)
+    ap.add_argument("--ckpt", default="")
     ap.add_argument("--seed0", type=int, default=40_000_000)
     ap.add_argument("--n", type=int, default=10)
     ap.add_argument("--eps", type=float, nargs="+", default=[0.01])
@@ -141,14 +141,14 @@ def main(argv=None) -> int:
                     help="V3 쪽 확장 예산 (0 = 기준선과 같게). D97 자기 결정적 예산")
     ap.add_argument("--out", required=True)
     ap.add_argument("--priority-mode", default="d_only",
-                    choices=["d_only", "h_only", "g_plus_h", "d_then_h"])
+                    choices=["d_only", "h_only", "g_plus_h", "d_then_h", "oracle"])
     standard_guard.add_argument(ap)
     a = ap.parse_args(argv)
 
     seeds = [a.seed0 + i for i in range(a.n)]
     guards.assert_seed_range(seeds, "valid")          # ★ 평가 시드(20260000~) 로 못 돌린다
     std = standard_guard.resolve(a.allow_public_standard, what="1단계 측정")
-    net, ck = load_net(a.ckpt)
+    net, ck = (load_net(a.ckpt) if a.ckpt else (None, {}))
     v3_budget = a.v3_budget or a.budget
 
     rows: list[dict] = []
@@ -169,10 +169,27 @@ def main(argv=None) -> int:
             row["base"] = {"status": rb.status, "expanded": rb.expanded,
                            "search_sec": round(rb.search_sec, 4), "cost": rb.J,
                            "J_support_est": rb.J_support_est}
-            # ── V3: 이중 큐 포컬 + 학습 ĥ
+            # ── V3: 이중 큐 포컬 + 학습 ĥ (또는 오라클)
+            oracle = None
+            if a.priority_mode == "oracle":
+                # ★ **상한 측정.** 기준선 최적 경로 위 상태를 0, 나머지를 1 로 둔다.
+                # 어떤 priority 함수도 이보다 잘할 수 없다 (경로를 미리 아는 셈이므로).
+                # 이것이 "순위가 지렛대인가" 를 가르는 측정이다 — 오라클 R 이 작으면
+                # 띠 안 순서에는 애초에 여지가 없고, 1단계 속도 이야기가 성립하지 않는다.
+                if rb.status != "ok":
+                    rows.append(row)
+                    continue
+                oracle = {(int(s.node), int(s.dir), round(float(s.run), 3),
+                           int(s.bend)) for s in rb.states}
             for eps in a.eps:
                 cnt = [0]
-                pr = make_priority(net, ck, g, pipe, hf, cnt, a.priority_mode)
+                if oracle is not None:
+                    def pr(s, gv, hv, f, _o=oracle, _c=cnt):
+                        _c[0] += 1
+                        return 0.0 if (int(s.node), int(s.dir), round(float(s.run), 3),
+                                       int(s.bend)) in _o else 1.0
+                else:
+                    pr = make_priority(net, ck, g, pipe, hf, cnt, a.priority_mode)
                 t0 = time.perf_counter()
                 r = focal.focal_search_dual(g, pipe, hf, eps=eps, priority=pr,
                                             expand_limit=v3_budget)
