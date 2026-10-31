@@ -23,3 +23,9 @@ checkpoint_step1*
 labels/
 *.label.json
 support_standard*.json
+out/
+logs/
+
+# 학습된 ĥ 체크포인트 — 비공개 서포트 표에서 나온 라벨로 학습했으므로
+# 가중치도 파생물이다 (labels/ 와 같은 취급, D78). 수치는 문서에 집계로만 적는다
+ckpt/
