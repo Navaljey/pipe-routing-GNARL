@@ -117,8 +117,14 @@ def make_priority(net, ck, g, pipe, h, counter, mode: str = "d_only"):
     sd = np.asarray(ck["sd"], dtype=np.float32)
 
     def priority(s, gv, hv, f):
+        # ★ **자기 시간만** 잰다. 앞서 `c_h = 전체 탐색 시간 ÷ 호출 수` 로 계산해 92.9 µs 를
+        # "추론 비용" 으로 보고했는데, 그 값에는 탐색 자체(이웃 생성·cost·지배검사·힙)가
+        # 전부 섞여 있었다. 그 오류 때문에 설계안 §17.2 에서 "주범은 파이썬 특징 생성" 이라고
+        # 적었고 **그것이 틀렸다** — 실측 내역은 특징 15.6 µs + h 0.6 + 추론 5.1 ≈ **21 µs** 뿐이다
+        t = time.perf_counter()
         counter[0] += 1
         hh, dd = net((fm.one(s, hv) - mu) / sd, hv)
+        counter[1] += time.perf_counter() - t
         if mode == "d_only":
             return dd
         if mode == "h_only":
@@ -182,7 +188,7 @@ def main(argv=None) -> int:
                 oracle = {(int(s.node), int(s.dir), round(float(s.run), 3),
                            int(s.bend)) for s in rb.states}
             for eps in a.eps:
-                cnt = [0]
+                cnt = [0, 0.0]
                 if oracle is not None:
                     def pr(s, gv, hv, f, _o=oracle, _c=cnt):
                         _c[0] += 1
@@ -197,7 +203,12 @@ def main(argv=None) -> int:
                 row[f"eps_{eps}"] = {"status": r.status, "expanded": r.expanded,
                                      "search_sec": round(sec, 4), "cost": r.cost,
                                      "n_priority_calls": cnt[0],
-                                     "c_h_us": round(sec / cnt[0] * 1e6, 2) if cnt[0] else None,
+                                     # c_h = priority 자기 시간 ÷ 호출 수 (특징 + 추론만)
+                                     "c_h_us": round(cnt[1] / cnt[0] * 1e6, 2) if cnt[0] else None,
+                                     # c_s = 나머지 ÷ 확장 수 = 탐색 자체 단가
+                                     "c_s_us": round((sec - cnt[1]) / r.expanded * 1e6, 2)
+                                     if r.expanded else None,
+                                     "priority_sec": round(cnt[1], 3),
                                      "ratio_cost": (r.cost / rb.J) if (r.cost and rb.J) else None,
                                      "ratio_expanded": (rb.expanded / r.expanded) if r.expanded else None}
             rows.append(row)
@@ -226,7 +237,9 @@ def main(argv=None) -> int:
                 sec_base_sum=round(sum(r["base"]["search_sec"] for r in pair), 2),
                 sec_v3_sum=round(sum(r[k]["search_sec"] for r in pair), 2),
                 c_h_us_median=round(statistics.median(
-                    r[k]["c_h_us"] for r in pair if r[k]["c_h_us"]), 2))
+                    r[k]["c_h_us"] for r in pair if r[k]["c_h_us"]), 2),
+                c_s_us_median=round(statistics.median(
+                    [r[k]["c_s_us"] for r in pair if r[k].get("c_s_us")] or [0]), 2))
         out[f"summary_{eps}"] = summ
         print(f"\nε={eps}: {json.dumps(summ, ensure_ascii=False)}")
     pathlib.Path(a.out).parent.mkdir(parents=True, exist_ok=True)
