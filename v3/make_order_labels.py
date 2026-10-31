@@ -68,9 +68,10 @@ GEN_KW = dict(n_pipes=10)
 #: (대조 학습·listwise 어느 쪽이든). 표본 수는 측정 후 조정 (`미결:`).
 N_CAND = 16
 
-#: 라우트당 기록할 확장 시점 수 상한. 초반·후반이 고루 들어가게 **균등 간격**으로 뽑는다
-#: — 앞쪽만 쓰면 쉬운 구간만 배운다 (§9.1: 확장 ≤ 1,000 구간은 선택지가 거의 없다).
-N_STEPS = 64
+#: 라우트당 결정 수 상한. 기록 시점 = **오라클이 경로 위 상태를 꺼내는 순간**이므로
+#: 자연스러운 상한이 경로 길이(라벨 실측 중앙 28 · 최대 133)다. 긴 경로를 자르지 않게
+#: 넉넉히 둔다.
+N_STEPS = 160
 
 
 def oracle_order_labels(g, pipe, path_states, eps: float, budget: int, rng) -> dict | None:
@@ -101,8 +102,6 @@ def oracle_order_labels(g, pipe, path_states, eps: float, budget: int, rng) -> d
     expanded = 0
     thr = -math.inf
     samples: list[dict] = []
-    # 균등 간격 기록 — 전체 확장 수를 모르므로 지수적으로 간격을 늘려 뒤쪽도 잡는다
-    next_rec, step = 1, 1
 
     def live(ent):
         _f, _t, gv, s = ent
@@ -118,17 +117,28 @@ def oracle_order_labels(g, pipe, path_states, eps: float, budget: int, rng) -> d
             if gv <= g_best.get(s, math.inf) + EPS:
                 heapq.heappush(foc, (0.0 if key(s) in on_path else 1.0, t, f, gv, s))
 
-        # ── 기록: 지금 FOCAL 안에서 오라클이 무엇을 고르는가
-        if expanded >= next_rec and len(samples) < N_STEPS and foc:
-            cands = [(k, f, gv, s) for k, _t, f, gv, s in foc
-                     if live((f, 0, gv, s))]
-            good = [c for c in cands if c[0] == 0.0]
-            bad = [c for c in cands if c[0] != 0.0]
-            if good and bad:                       # 고를 거리가 있을 때만 (정답·오답 둘 다)
-                pick = good[0]
+        s = None
+        gv = 0.0
+        while foc:
+            _k, _t, f, gcur, cand = heapq.heappop(foc)
+            if live((f, _t, gcur, cand)):
+                s, gv = cand, gcur
+                break
+
+        # ── 기록: **오라클이 경로 위 상태를 고르는 순간**이 곧 하나의 결정이다.
+        # 처음에는 확장 수에 대해 지수 간격으로 기록했는데 3 라우트에서 결정이 6~9개
+        # 뿐이었다 (전부 확장 2~16 지점). 구조적인 이유다 — 오라클은 경로 위 상태에
+        # priority 0 을 주므로 **FOCAL 에 들어오는 즉시 꺼낸다.** 그래서 경로 위 상태가
+        # 띠 안에 머무는 시간이 사실상 0 이고, 일정에 맞춰 들여다보면 거의 못 잡는다.
+        # → 꺼내는 순간에 기록하면 **경로 길이만큼**(라우트당 약 40~130) 나오고,
+        # 오답 후보도 그 순간 실제 FOCAL 동거인이라 더 충실하다.
+        if s is not None and key(s) in on_path and len(samples) < N_STEPS:
+            bad = [(f, gvv, cand) for _k, _t, f, gvv, cand in foc
+                   if _k != 0.0 and live((f, 0, gvv, cand))]
+            if bad:                                  # 고를 거리가 있을 때만
                 others = [bad[i] for i in rng.choice(len(bad), size=min(N_CAND - 1, len(bad)),
                                                      replace=False)]
-                chosen = [pick] + others
+                chosen = [(0.0, gv, s)] + others
                 order = rng.permutation(len(chosen))      # 정답 위치를 섞는다
                 # ★ 후보 수는 매번 다르다 (띠가 좁은 순간에는 N_CAND 보다 적다).
                 # 배열 모양을 고정해야 쌓이므로 **0 으로 채우고 유효 개수를 적는다** —
@@ -137,23 +147,14 @@ def oracle_order_labels(g, pipe, path_states, eps: float, budget: int, rng) -> d
                 X = np.zeros((N_CAND, features.DIM), dtype=np.float32)
                 gold = -1
                 for slot, idx in enumerate(order):
-                    k, f, gv, s = chosen[idx]
-                    X[slot] = fm.one(s, f - gv)
+                    fv, gvv, cand = chosen[idx]
+                    hv = (fv - gvv) if idx != 0 else h(s)
+                    X[slot] = fm.one(cand, hv)
                     if idx == 0:
                         gold = slot
-                samples.append({"expanded": expanded, "n_focal": len(cands),
-                                "n_on_path": len(good), "X": X, "gold": gold,
-                                "n_valid": len(chosen)})
-            next_rec = expanded + step
-            step = min(step * 2, 4096)
+                samples.append({"expanded": expanded, "n_focal": len(bad) + 1,
+                                "X": X, "gold": gold, "n_valid": len(chosen)})
 
-        s = None
-        gv = 0.0
-        while foc:
-            _k, _t, f, gcur, cand = heapq.heappop(foc)
-            if live((f, _t, gcur, cand)):
-                s, gv = cand, gcur
-                break
         if s is None:
             if not open_h:
                 break
