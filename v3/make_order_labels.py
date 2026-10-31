@@ -130,7 +130,11 @@ def oracle_order_labels(g, pipe, path_states, eps: float, budget: int, rng) -> d
                                                      replace=False)]
                 chosen = [pick] + others
                 order = rng.permutation(len(chosen))      # 정답 위치를 섞는다
-                X = np.zeros((len(chosen), features.DIM), dtype=np.float32)
+                # ★ 후보 수는 매번 다르다 (띠가 좁은 순간에는 N_CAND 보다 적다).
+                # 배열 모양을 고정해야 쌓이므로 **0 으로 채우고 유효 개수를 적는다** —
+                # 학습 손실은 `n_valid` 밖을 가린다 (listwise 표준). 중복으로 채우면
+                # 가짜 정답이 생길 수 있어 쓰지 않는다
+                X = np.zeros((N_CAND, features.DIM), dtype=np.float32)
                 gold = -1
                 for slot, idx in enumerate(order):
                     k, f, gv, s = chosen[idx]
@@ -138,7 +142,8 @@ def oracle_order_labels(g, pipe, path_states, eps: float, budget: int, rng) -> d
                     if idx == 0:
                         gold = slot
                 samples.append({"expanded": expanded, "n_focal": len(cands),
-                                "n_on_path": len(good), "X": X, "gold": gold})
+                                "n_on_path": len(good), "X": X, "gold": gold,
+                                "n_valid": len(chosen)})
             next_rec = expanded + step
             step = min(step * 2, 4096)
 
@@ -206,7 +211,7 @@ def main(argv=None) -> int:
 
     rng = np.random.default_rng(a.seed)
     out_by_eps = {e: {"X": [], "gold": [], "route": [], "n_focal": [], "expanded": [],
-                      "size": [], "gravity": []} for e in a.eps}
+                      "size": [], "gravity": [], "n_valid": []} for e in a.eps}
     cur_seed, sc = None, None
     t0 = time.perf_counter()
     for ri, r in enumerate(rows):
@@ -231,6 +236,7 @@ def main(argv=None) -> int:
                 d["expanded"].append(smp["expanded"])
                 d["size"].append(r["size"])
                 d["gravity"].append(int(r["gravity"]))
+                d["n_valid"].append(smp["n_valid"])
         if (ri + 1) % 10 == 0:
             n = {e: len(out_by_eps[e]["gold"]) for e in a.eps}
             print(f"  {ri + 1}/{len(rows)} · 표본 {n} · {round(time.perf_counter() - t0)}s",
@@ -248,6 +254,7 @@ def main(argv=None) -> int:
             f, X=np.stack(d["X"]), gold=np.asarray(d["gold"], dtype=np.int32),
             route=np.asarray(d["route"], dtype=np.int32),
             n_focal=np.asarray(d["n_focal"], dtype=np.int64),
+            n_valid=np.asarray(d["n_valid"], dtype=np.int32),
             expanded=np.asarray(d["expanded"], dtype=np.int64),
             size=np.asarray(d["size"]), gravity=np.asarray(d["gravity"], dtype=np.int8),
             names=np.asarray(features.NAMES), eps=np.asarray([e]),
