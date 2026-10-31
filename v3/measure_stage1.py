@@ -51,6 +51,8 @@ def load_net(path):
     import torch
     ck = torch.load(path, map_location="cpu", weights_only=False)
     sd = {k: v.numpy() for k, v in ck["state_dict"].items()}
+    if ck.get("kind") == "rank":          # train_rank.py 산출물
+        return NumpyRankNet(sd), ck
     return NumpyHNet(sd), ck
 
 
@@ -97,6 +99,29 @@ class NumpyHNet:
         return hh, dd
 
 
+class NumpyRankNet:
+    """`train_rank.RankNet` 의 numpy 추론 경로 — 점수가 **작을수록 먼저**."""
+
+    def __init__(self, sd: dict):
+        self.W = []
+        i = 0
+        while f"trunk.{i}.weight" in sd:
+            self.W.append((np.asarray(sd[f"trunk.{i}.weight"], dtype=np.float32).T,
+                           np.asarray(sd[f"trunk.{i}.bias"], dtype=np.float32)))
+            i += 2
+        self.w = np.asarray(sd["head.weight"], dtype=np.float32).ravel()
+        self.b = float(np.asarray(sd["head.bias"]).ravel()[0])
+
+    def __call__(self, x: np.ndarray, h_val: float) -> tuple[float, float]:
+        z = x
+        for W, b in self.W:
+            z = z @ W + b
+            np.clip(z, -30.0, 30.0, out=z)
+            z = z / (1.0 + np.exp(-z))
+        v = float(z @ self.w) + self.b
+        return v, v          # (ĥ 자리, d̂ 자리) — 어느 모드로 불러도 같은 점수
+
+
 def make_priority(net, ck, g, pipe, h, counter, mode: str = "d_only"):
     """priority(state, g, h, f) → 작은 값을 먼저. 상태당 1회 호출이므로 비용 = c_h 다.
 
@@ -125,7 +150,7 @@ def make_priority(net, ck, g, pipe, h, counter, mode: str = "d_only"):
         counter[0] += 1
         hh, dd = net((fm.one(s, hv) - mu) / sd, hv)
         counter[1] += time.perf_counter() - t
-        if mode == "d_only":
+        if mode in ("rank", "d_only"):
             return dd
         if mode == "h_only":
             return hh
@@ -147,7 +172,7 @@ def main(argv=None) -> int:
                     help="V3 쪽 확장 예산 (0 = 기준선과 같게). D97 자기 결정적 예산")
     ap.add_argument("--out", required=True)
     ap.add_argument("--priority-mode", default="d_only",
-                    choices=["d_only", "h_only", "g_plus_h", "d_then_h", "oracle"])
+                    choices=["rank", "d_only", "h_only", "g_plus_h", "d_then_h", "oracle"])
     standard_guard.add_argument(ap)
     a = ap.parse_args(argv)
 
