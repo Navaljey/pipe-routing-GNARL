@@ -136,8 +136,19 @@ def oracle_order_labels(g, pipe, path_states, eps: float, budget: int, rng) -> d
             bad = [(f, gvv, cand) for _k, _t, f, gvv, cand in foc
                    if _k != 0.0 and live((f, 0, gvv, cand))]
             if bad:                                  # 고를 거리가 있을 때만
-                others = [bad[i] for i in rng.choice(len(bad), size=min(N_CAND - 1, len(bad)),
-                                                     replace=False)]
+                # ★ **어려운 오답을 섞는다.** |FOCAL| 이 중앙 186 · p90 13,175 라
+                # 무작위로 15개를 뽑으면 대부분 명백히 나쁜 후보고, 모형은 "정답 대
+                # 잡음" 을 배운다 — 추론 때 실제로 겨루는 상대는 `f` 가 낮은
+                # **진짜 경쟁자**들이다. 절반은 `f` 최소(지금 포컬이 먼저 꺼낼 것들),
+                # 절반은 무작위로 둔다. `미결:` 비율은 측정 후 조정
+                n_take = min(N_CAND - 1, len(bad))
+                n_hard = n_take // 2
+                order_f = sorted(range(len(bad)), key=lambda i: bad[i][0])
+                hard_idx = order_f[:n_hard]
+                rest = [i for i in range(len(bad)) if i not in set(hard_idx)]
+                rnd_idx = (list(rng.choice(rest, size=min(n_take - n_hard, len(rest)),
+                                           replace=False)) if rest else [])
+                others = [bad[i] for i in list(hard_idx) + list(rnd_idx)]
                 chosen = [(0.0, gv, s)] + others
                 order = rng.permutation(len(chosen))      # 정답 위치를 섞는다
                 # ★ 후보 수는 매번 다르다 (띠가 좁은 순간에는 N_CAND 보다 적다).
