@@ -137,6 +137,26 @@ def make_priority(net, ck, g, pipe, h, counter, mode: str = "d_only"):
     ``g_plus_h``  `g + ĥ` = 추정 전체 비용. 가장 보수적
     ``d_then_h``  `d̂` 우선, 동점이면 `ĥ` — 홉 수가 같을 때만 비용으로 가른다
     """
+    # ── 무학습 대조군 2종 (2026-11-04). **왜 필요한가**
+    # "R = 2.061 중 얼마가 학습 덕인가" 를 가르는 측정이 없었다. `h_only` 는 대조군이
+    # **아니다** — 같은 학습 가중치를 쓰고 출력 해석만 바꾸므로 rank 체크포인트에서는
+    # 학습 모형과 같은 값이 나온다 (`NumpyRankNet` 이 (v, v) 를 돌려준다).
+    #
+    # 참고로 "띠를 넓힌 것만으로 빨라진다" 는 **구조적으로 불가능**하다 — FOCAL 을 `f`
+    # 순으로 고르면 항상 f_min 을 꺼내므로 A* 와 동일해진다 (R = 1.0). 띠는 자유도만
+    # 주고 이득은 **고르는 규칙**에서만 나온다. 그래서 대조군은 "f 가 아닌 무학습 규칙"
+    # 두 개로 잡는다: 정보를 쓰는 쪽(h)과 안 쓰는 쪽(무작위).
+    if mode == "h_raw":                     # admissible h 순 = 띠 안 greedy best-first
+        def priority(s, gv, hv, f, _c=counter):
+            _c[0] += 1                      # 시간은 재지 않는다 (특징·추론이 없어 0 에 가깝다)
+            return hv
+        return priority
+    if mode == "rand":                      # 정보 0 의 바닥값. 결정적이어야 하므로 해시
+        def priority(s, gv, hv, f, _c=counter):
+            _c[0] += 1
+            return float(hash((int(s.node), int(s.dir), int(s.bend))) & 0xFFFF)
+        return priority
+
     fm = features.FeatureMaker(g, pipe)
     mu = np.asarray(ck["mu"], dtype=np.float32)
     sd = np.asarray(ck["sd"], dtype=np.float32)
@@ -172,7 +192,8 @@ def main(argv=None) -> int:
                     help="V3 쪽 확장 예산 (0 = 기준선과 같게). D97 자기 결정적 예산")
     ap.add_argument("--out", required=True)
     ap.add_argument("--priority-mode", default="d_only",
-                    choices=["rank", "d_only", "h_only", "g_plus_h", "d_then_h", "oracle"])
+                    choices=["rank", "d_only", "h_only", "g_plus_h", "d_then_h", "oracle",
+                             "h_raw", "rand"])
     standard_guard.add_argument(ap)
     a = ap.parse_args(argv)
 
