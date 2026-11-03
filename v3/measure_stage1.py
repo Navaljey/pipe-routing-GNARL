@@ -282,8 +282,10 @@ def main(argv=None) -> int:
                 cost_ratio_max=round(max(r[k]["ratio_cost"] for r in pair), 5),
                 sec_base_sum=round(sum(r["base"]["search_sec"] for r in pair), 2),
                 sec_v3_sum=round(sum(r[k]["search_sec"] for r in pair), 2),
+                # `or [0]` 필수 — 무학습 대조군(h_raw·rand)은 추론이 없어 c_h 가 전부 0 이다.
+                # 이 가드가 없어 1차 실행이 20 라우트를 다 돌고 요약에서 죽었다 (2026-11-04)
                 c_h_us_median=round(statistics.median(
-                    r[k]["c_h_us"] for r in pair if r[k]["c_h_us"]), 2),
+                    [r[k]["c_h_us"] for r in pair if r[k]["c_h_us"]] or [0]), 2),
                 c_s_us_median=round(statistics.median(
                     [r[k]["c_s_us"] for r in pair if r[k].get("c_s_us")] or [0]), 2))
         out[f"summary_{eps}"] = summ
