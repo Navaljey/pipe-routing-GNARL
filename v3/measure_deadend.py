@@ -83,8 +83,9 @@ def alive(space, pipe, s, hf, cap: int) -> tuple[str, int]:
     return "dead", n
 
 
-def oracle_walk(space, pipe, hf, hhat, *, cap: int, step_limit: int):
-    """`ĥ` 로 고르되 오라클이 DEAD 라 증명한 후보는 건너뛰는 보행.
+def oracle_walk(space, pipe, hf, hhat, *, cap: int, step_limit: int,
+                time_limit: float = 600.0):
+    """`ĥ` 로 고르되 오라클이 DEAD 라 **증명한** 후보는 건너뛰는 보행.
 
     → dict(status, cost, steps, n_query, n_dead_skipped, n_unknown, oracle_exp)
     """
@@ -93,7 +94,11 @@ def oracle_walk(space, pipe, hf, hhat, *, cap: int, step_limit: int):
     gv = 0.0
     nq = n_dead = n_unk = 0
     oexp = 0
+    t_start = time.perf_counter()
     for step in range(1, step_limit + 1):
+        if time.perf_counter() - t_start > time_limit:
+            return dict(status="time_limit", cost=None, steps=step, n_query=nq,
+                        n_dead_skipped=n_dead, n_unknown=n_unk, oracle_exp=oexp)
         cand = []
         for nb in space.neighbors(s, pipe):
             if nb in seen:
@@ -108,8 +113,23 @@ def oracle_walk(space, pipe, hf, hhat, *, cap: int, step_limit: int):
             return dict(status="deadlock", cost=None, steps=step, n_query=nq,
                         n_dead_skipped=n_dead, n_unknown=n_unk, oracle_exp=oexp)
         cand.sort(key=lambda t: t[0])
-        # ★ 처음 ALIVE 를 만나면 멈춘다. 전수 질의를 하면 라우트당 수천 번 탐색이다
-        pick = None
+        # ★ 처음 **증명된 ALIVE** 를 만나면 멈춘다. 전수 질의를 하면 라우트당 수천 번 탐색이다.
+        #
+        # 🔧 2026-11-08 비용 실측으로 두 가지를 고쳤다. ALIVE 판정(20~100 pops, 1~3 ms)과
+        # DEAD 판정(1 pops)은 **둘 다 싸다** — `hf` 가 좋아서 최선우선이 목표를 금방 찾고,
+        # 죽은 주머니는 금방 소진된다. 비싼 것은 **UNKNOWN 한 건**이다: 상한을 전부 태우고
+        # `seen` 이 상한의 18배로 커진다 (상한 5만 → 메모리 900 MB, 질의 1회 수 초).
+        # 1차 실행이 한 시드도 15분에 못 끝낸 원인이 이것이다.
+        #
+        # ① 상한을 낮춘다 — DEAD 증명은 주머니가 작을 때만 싸고, 큰 주머니는 어차피 못 센다.
+        # ② UNKNOWN 을 바로 통과시키지 않고 **증명된 ALIVE 를 먼저 찾는다.** 전부 실패하면
+        #    그때 최선 UNKNOWN 을 통과시킨다. 같은 비용으로 오라클이 강해진다.
+        #
+        # ⚠️ 그래서 이것은 **완벽한 오라클이 아니다.** 걸러내는 것은 상한 안에서 **증명된**
+        # DEAD 뿐이고, 상한보다 큰 죽은 주머니는 통과한다. 도달률은 완벽한 오라클의
+        # **하한**으로 읽어야 한다. 도달률이 낮게 나오면 그 자체가 "주머니가 상한보다
+        # 크다" 는 뜻이고, 국소 특징 68개로는 더더욱 못 잡는다는 증거가 된다.
+        pick = unk_pick = None
         for _k, ng, nb in cand:
             nq += 1
             verdict, ex = alive(space, pipe, nb, hf, cap)
@@ -118,9 +138,14 @@ def oracle_walk(space, pipe, hf, hhat, *, cap: int, step_limit: int):
                 n_dead += 1
                 continue
             if verdict == "unknown":
-                n_unk += 1            # 증명 못 했으면 통과시킨다 (보수적)
+                n_unk += 1
+                if unk_pick is None:
+                    unk_pick = (ng, nb)       # 예비. 증명된 ALIVE 가 없을 때만 쓴다
+                continue
             pick = (ng, nb)
             break
+        if pick is None and unk_pick is not None:
+            pick = unk_pick
         if pick is None:
             # 모든 후보가 DEAD 로 증명됨 = 지금 상태가 DEAD. 되돌아갈 장치는 없다
             return dict(status="all_dead", cost=None, steps=step, n_query=nq,
@@ -137,8 +162,9 @@ def main(argv=None) -> int:
     ap.add_argument("--seed0", type=int, default=40_000_000)
     ap.add_argument("--n", type=int, default=2)
     ap.add_argument("--budget", type=int, default=EXPAND_BUDGET)
-    ap.add_argument("--oracle-cap", type=int, default=200_000,
-                    help="오라클 1회 질의의 확장 상한. 넘으면 UNKNOWN → 통과")
+    ap.add_argument("--oracle-cap", type=int, default=3_000,
+                    help="오라클 1회 질의의 pop 상한. 넘으면 UNKNOWN. "
+                         "실측: ALIVE 20~100 · DEAD 1~수십 · UNKNOWN 만 상한을 다 태운다")
     ap.add_argument("--step-limit", type=int, default=2_000)
     ap.add_argument("--route-time-limit", type=float, default=600.0)
     ap.add_argument("--out", required=True)
@@ -176,7 +202,8 @@ def main(argv=None) -> int:
                 return net((fm.one(s, hv) - mu) / sd, hv)[0]
 
             t0 = time.perf_counter()
-            r = oracle_walk(g, pipe, hf, hhat, cap=a.oracle_cap, step_limit=a.step_limit)
+            r = oracle_walk(g, pipe, hf, hhat, cap=a.oracle_cap, step_limit=a.step_limit,
+                            time_limit=a.route_time_limit)
             r["walk_sec"] = round(time.perf_counter() - t0, 2)
             if r["status"] == "ok" and rb.status == "ok" and rb.J:
                 r["ratio_cost"] = r["cost"] / rb.J
