@@ -57,8 +57,10 @@ SK = pathlib.Path(os.environ.get("SKELETON_ROOT", "/home/claude/navaljey/pipe-ro
 if str(SK) not in sys.path:
     sys.path.insert(0, str(SK))
 
-from pipe_routing.generator import GeneratorConfig, generate           # noqa: E402
-from pipe_routing.layered import (EXPAND_BUDGET, G0, LayeredGraph,      # noqa: E402
+from pipe_routing.generator import (GeneratorConfig, PairConfig,        # noqa: E402
+                                    generate, generate_block_pair)
+from pipe_routing.layered import (EXPAND_BUDGET, EXPAND_BUDGET_PAIR,    # noqa: E402
+                                  G0, LayeredGraph,
                                   _route, clear_cache, heuristic_factory)
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
@@ -68,6 +70,11 @@ from v3 import guards, standard_guard                                   # noqa: 
 #: 1단계 측정이 분포 차이를 재게 된다. 평가 시나리오의 meta.config 와 맞춘 값이다
 #: (obstacle_fill 0.12 · n_pipes 10 · gravity_ratio 0.3 · stair_rule·d94_rule 없음).
 GEN_KW = dict(n_pipes=10)
+
+#: 블록 쌍 — E1 `scenarios/pair/` 와 **같은 생성 설정** (D76 ⑥·D107 재생성판).
+#: PairConfig 기본값 그대로 두고 시드만 학습 범위로 바꾼다.
+PAIR_KW = dict(n_pipes_per_block=10, n_crossing=4, window_mm=(4000, 2000),
+               wall_thickness=20.0, stair_rule=True, d94_rule=True)
 
 
 def skeleton_commit() -> str:
@@ -138,8 +145,18 @@ def main(argv=None) -> int:
     ap.add_argument("--n", type=int, default=20, help="시나리오 수")
     ap.add_argument("--stride", type=int, default=1, help="시드 간격 (샤딩용)")
     ap.add_argument("--out", default="labels/stage1", help="출력 접두 (.jsonl · .manifest.json)")
-    ap.add_argument("--budget", type=int, default=EXPAND_BUDGET, help=f"확장 예산 (기본 {EXPAND_BUDGET} = 2²²)")
+    ap.add_argument("--budget", type=int, default=0,
+                    help=f"확장 예산 (0 = 세트 기본값: 단일 블록 {EXPAND_BUDGET} = 2²² · "
+                         f"블록 쌍 {EXPAND_BUDGET_PAIR} = 2²³, D92 ③)")
     ap.add_argument("--purpose", default="train", choices=["train", "valid"])
+    # ── 블록 쌍 (2026-11-09 소유자 지시 "관통 가능 정보도") ─────────────────
+    # 관통 창 채널(features.WIN_SLICE)은 **블록 쌍에서만** 값이 생긴다. 단일 블록에는
+    # 공유 격벽이 없어 penetration_cost 가 항상 0 이고 창도 없다.
+    ap.add_argument("--pair", action="store_true",
+                    help="블록 쌍 시나리오로 생성 (D76·D91~D96). 예산 기본값이 2²³ 로 바뀐다")
+    ap.add_argument("--crossing-only", action="store_true",
+                    help="--pair 와 함께: 관통 배관만 (시나리오당 24 중 4). 관통 채널은 "
+                         "관통 배관에서만 값이 생기므로 손실 없이 비용이 6분의 1 이다")
     ap.add_argument("--throwaway", action="store_true", help="폐기용 표시 (학습 루프가 거른다)")
     standard_guard.add_argument(ap)
     a = ap.parse_args(argv)
@@ -147,6 +164,9 @@ def main(argv=None) -> int:
     seeds = [a.seed0 + i * a.stride for i in range(a.n)]
     guards.assert_seed_range(seeds, a.purpose)                      # ★ 평가 시드 오염 차단
     std = standard_guard.resolve(a.allow_public_standard, what="라벨 생성")
+    if a.crossing_only and not a.pair:
+        raise SystemExit("--crossing-only 는 --pair 와 함께 써야 한다 (단일 블록엔 관통 배관이 없다)")
+    budget = a.budget or (EXPAND_BUDGET_PAIR if a.pair else EXPAND_BUDGET)
 
     out = pathlib.Path(a.out)
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -175,9 +195,12 @@ def main(argv=None) -> int:
         std_sha256_value=std.get("sha256") or "PUBLIC_TEMPORARY",
         skeleton_commit=skeleton_commit(), grid_variant=G0.name,
         purpose=a.purpose, throwaway=a.throwaway,
-        support_standard=std, budget=a.budget, seeds=[seeds[0], seeds[-1]], n_scenarios=len(seeds),
-        stride=a.stride, generator_kw=GEN_KW, label="stage1_solo_empty_map",
-        note="빈 맵 단독 A* 최적 경로의 상태별 남은 비용 분해 (rem_pe · rem_sup · rem_pen)",
+        support_standard=std, budget=budget, seeds=[seeds[0], seeds[-1]], n_scenarios=len(seeds),
+        stride=a.stride,
+        generator_kw=(dict(PAIR_KW, crossing_only=a.crossing_only) if a.pair else GEN_KW),
+        label="stage1_pair_crossing" if a.pair else "stage1_solo_empty_map",
+        note="빈 맵 단독 A* 최적 경로의 상태별 남은 비용 분해 (rem_pe · rem_sup · rem_pen)"
+             + (" — 블록 쌍 (D76·D91~D96), 관통 비용 rem_pen 이 0 이 아니다" if a.pair else ""),
     )
     out.with_suffix(".manifest.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -191,15 +214,17 @@ def main(argv=None) -> int:
         # 시나리오 안에서는 (구경, 중력관) 별로 캐시가 유효하므로 경계에서만 비운다
         clear_cache()
         try:
-            sc = generate(GeneratorConfig(seed=seed, **GEN_KW), name)
+            sc = (generate_block_pair(PairConfig(seed=seed, **PAIR_KW), name) if a.pair
+                  else generate(GeneratorConfig(seed=seed, **GEN_KW), name))
         except Exception as e:                                   # 생성 실패 시드는 건너뛴다
             print(f"  [{k + 1}/{len(seeds)}] {name}: 생성 실패 {e}", flush=True)
             continue
-        for pipe in sc.pipes:
+        pipes = [p for p in sc.pipes if p.crossing_window] if a.crossing_only else list(sc.pipes)
+        for pipe in pipes:
             if (name, pipe.id) in done:
                 continue
             attempt.write_text(f"{name}\t{pipe.id}", encoding="utf-8")
-            row = label_route(sc, pipe, a.budget)
+            row = label_route(sc, pipe, budget)
             attempt.unlink(missing_ok=True)
             row = {"scenario": name, "seed": seed, **row}
             with stream.open("a", encoding="utf-8") as fh:
