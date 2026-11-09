@@ -207,7 +207,8 @@ def focal_search(space, pipe, heuristic, *, eps: float = 0.0, priority=None,
 # ---------------------------------------------------------------------------
 
 def focal_search_dual(space, pipe, heuristic, *, eps: float, priority,
-                      expand_limit: int | None = None, time_limit: float | None = None) -> FocalResult:
+                      expand_limit: int | None = None, time_limit: float | None = None,
+                      on_expand=None) -> FocalResult:
     """`focal_search` 와 같은 탐색이지만 FOCAL 유지가 **O(log n) 분할상환**이다.
 
     `focal_search` 는 확장마다 OPEN 전체를 훑어 FOCAL 멤버를 고른다 (참조 구현, 등가성
@@ -272,6 +273,8 @@ def focal_search_dual(space, pipe, heuristic, *, eps: float, priority,
 
         closed.setdefault((s.node, s.dir), []).append((s.run, s.bend, s.ends, s.hz, g))
         expanded += 1
+        if on_expand is not None:        # 진단용 (막다른 확장 비율 측정, 설계안 §28). 기본 None
+            on_expand(s, g)
 
         if space.is_goal(s, pipe):
             chain, cur = [], s
