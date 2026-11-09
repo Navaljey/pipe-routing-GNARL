@@ -57,12 +57,17 @@ NAMES: list[str] = (
     + ["obs_supportable", "obs_penetrable"]          # S2 예약 — 지금은 0
     # ── 장애물 기하 (2026-11-09 소유자 지시) ───────────────────────────────
     # **왜 뒤에 붙이나:** 앞 68칸의 색인을 보존해야 기존 라벨·체크포인트·보고서의
-    # 채널 이름이 그대로 읽힌다. 1단계 망은 아직 동결 전이므로 **지금이 채널을 더할
-    # 수 있는 유일한 시점**이다 (동결 후에는 D-n §2.1 충돌이 생긴다).
+    # 채널 이름이 그대로 읽힌다. 채널을 더할 수 있는 창은 **2단계가 끝날 때 닫힌다**
+    # — freeze 는 계약 §(e2) 의 2→3 전환에서 한 번뿐이다 (D-n §2.1). 1단계와 2단계
+    # 사이에는 동결이 없다 (2단계는 1단계 망을 계승해 계속 학습한다, §7.1).
     + [f"elen_{i}" for i in range(N_DIRS)] + ["n_out_ratio", "clearance_r"]
+    # ── 관통 창 (2026-11-09 소유자 지시 "서포트 설치가능·관통 가능 정보도") ─────
+    # 블록 쌍에서만 값이 생긴다. 단일 블록은 전부 0 (= 죽은 채널) — 의도된 것이다.
+    + ["win_active", "win_dx", "win_crossed", "win_dy", "win_dz", "win_aimed"]
 )
 DIM = len(NAMES)
 OBS_SLICE = slice(68, 88)       #: 장애물 기하 채널 — ablation·대조군에서 이 구간만 조작한다
+WIN_SLICE = slice(88, 94)       #: 관통 창 채널 — 같은 방식으로 대조군을 만든다
 
 
 class FeatureMaker:
@@ -107,6 +112,23 @@ class FeatureMaker:
         clr = np.asarray(g.clearance, dtype=float)
         self.clr_r = np.minimum(np.nan_to_num(clr, nan=0.0, posinf=1e18)
                                 / (20.0 * self.r), 1.0).astype(np.float32)
+        # ── 관통 창 (2026-11-09) ────────────────────────────────────────────
+        # **왜 비용이 아니라 기하인가.** 관통 피스 무게(D95)는 `kg/m × 판 두께` 이고
+        # 실측 200A·20 mm 에서 **0.85 kg** 이다 — J 가 수천 kg 인 라우트에서 무시값이라
+        # 비용 채널로는 쓸모가 없다. 값이 있는 것은 **기하 제약**이다:
+        #   ① 관통 배관은 공유 격벽을 **창 안에서 정확히 1회, 수직으로** 지나야 한다 (D94)
+        #   ② **관통부는 서포트 고정점**이라 `u` 가 0 으로 돌아간다 (D94, layered.py:352)
+        # ② 의 *결과*는 이미 `su` 로 보인다. 못 보는 것은 **예고**다 — 그리고 `h`(D41)는
+        # 유클리드 거리 + 최소 꺾임이라 **창의 존재를 전혀 모른다.** 창이 직선에서 멀면
+        # `h` 가 크게 느슨해지고, 그 느슨함이 곧 망의 자리다 (설계안 §10 과 같은 논리).
+        self.win = None
+        win = getattr(pipe, "crossing_window", None)
+        sc = getattr(g, "_sc", None)
+        if win is not None and sc is not None and getattr(sc, "block_pair", None):
+            from pipe_routing import blockpair as _bp           # 읽기만 (계약 §(b) 불변)
+            y0, y1, z0, z1 = (float(v) for v in win)
+            self.win = (_bp.center(sc), (y0 + y1) / 2, (z0 + z1) / 2,
+                        max((y1 - y0) / 2, 1.0), max((z1 - z0) / 2, 1.0))
 
     def one(self, s, h_val: float) -> np.ndarray:
         g = self.g
@@ -175,6 +197,23 @@ class FeatureMaker:
         i += N_DIRS
         v[i] = self.n_out_ratio[s.node]                # 열린 출구 비율 (실측 중앙 8/18)
         v[i + 1] = self.clr_r[s.node]                  # 가장 가까운 장애물까지, 반지름 단위
+        i += 2
+
+        # ── 관통 창 ─────────────────────────────────────────────────────────
+        # 단일 블록이면 `self.win is None` → 6칸 모두 0 (죽은 채널, 의도된 것)
+        if self.win is not None:
+            cx, wy, wz, hy, hz = self.win
+            p = g.pos[s.node]
+            dx = (float(p[0]) - cx) / DIAG_MM
+            v[i] = 1.0                                 # 이 배관은 관통 배관이다
+            v[i + 1] = dx                              # 격벽까지 **부호 있는** x 거리
+            v[i + 2] = 1.0 if dx > 0.0 else 0.0        # 이미 건넜는가 (su 가 방금 0 이 된 이유)
+            # 창 중심에서 창 반폭 단위로 — |값| ≤ 1 이면 직진으로 창을 통과할 수 있다
+            ry = (float(p[1]) - wy) / hy
+            rz = (float(p[2]) - wz) / hz
+            v[i + 3] = max(-3.0, min(3.0, ry))
+            v[i + 4] = max(-3.0, min(3.0, rz))
+            v[i + 5] = 1.0 if (abs(ry) <= 1.0 and abs(rz) <= 1.0) else 0.0   # 조준됐다
         return v
 
 
