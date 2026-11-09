@@ -160,6 +160,15 @@ def make_priority(net, ck, g, pipe, h, counter, mode: str = "d_only"):
     fm = features.FeatureMaker(g, pipe)
     mu = np.asarray(ck["mu"], dtype=np.float32)
     sd = np.asarray(ck["sd"], dtype=np.float32)
+    # 체크포인트의 입력 폭이 현재 `features.DIM` 보다 좁을 수 있다 — 새 채널은 **뒤에만**
+    # 붙이기로 했으므로(§26) 앞 `ck_dim` 칸을 자르면 학습 당시와 **같은 입력**이 된다.
+    # 넓은 쪽은 복구할 방법이 없으므로 중단한다.
+    ck_dim = int(ck.get("dim", features.DIM))
+    if ck_dim > features.DIM:
+        raise SystemExit(f"체크포인트 입력 {ck_dim} > features.DIM {features.DIM} — 채널이 사라졌다")
+    cut = slice(0, ck_dim)
+    if ck_dim < features.DIM:
+        print(f"  (체크포인트 입력 {ck_dim}칸 — 현재 {features.DIM}칸에서 앞 {ck_dim}칸만 쓴다)")
 
     def priority(s, gv, hv, f):
         # ★ **자기 시간만** 잰다. 앞서 `c_h = 전체 탐색 시간 ÷ 호출 수` 로 계산해 92.9 µs 를
@@ -168,7 +177,7 @@ def make_priority(net, ck, g, pipe, h, counter, mode: str = "d_only"):
         # 적었고 **그것이 틀렸다** — 실측 내역은 특징 15.6 µs + h 0.6 + 추론 5.1 ≈ **21 µs** 뿐이다
         t = time.perf_counter()
         counter[0] += 1
-        hh, dd = net((fm.one(s, hv) - mu) / sd, hv)
+        hh, dd = net((fm.one(s, hv)[cut] - mu) / sd, hv)
         counter[1] += time.perf_counter() - t
         if mode in ("rank", "d_only"):
             return dd
