@@ -55,8 +55,14 @@ NAMES: list[str] = (
     + ["is_gravity", "hz_ratio"]
     + ["kg_per_m", "elbow_in_m", "radius", "turn_need_90", "bend_u_90"]
     + ["obs_supportable", "obs_penetrable"]          # S2 예약 — 지금은 0
+    # ── 장애물 기하 (2026-11-09 소유자 지시) ───────────────────────────────
+    # **왜 뒤에 붙이나:** 앞 68칸의 색인을 보존해야 기존 라벨·체크포인트·보고서의
+    # 채널 이름이 그대로 읽힌다. 1단계 망은 아직 동결 전이므로 **지금이 채널을 더할
+    # 수 있는 유일한 시점**이다 (동결 후에는 D-n §2.1 충돌이 생긴다).
+    + [f"elen_{i}" for i in range(N_DIRS)] + ["n_out_ratio", "clearance_r"]
 )
 DIM = len(NAMES)
+OBS_SLICE = slice(68, 88)       #: 장애물 기하 채널 — ablation·대조군에서 이 구간만 조작한다
 
 
 class FeatureMaker:
@@ -83,6 +89,24 @@ class FeatureMaker:
         # 노드별 "서포트 가능 출구" 비율 — spack 0 = 제약 없음, 그 밖 = 구간 요약 (D80 ⑨)
         self.scost = g.scost
         self.step = g.step
+        # ── 장애물 기하용 캐시 (2026-11-09). 전부 라우터가 이미 만들어 둔 배열이고
+        # 행 3개 읽기 실측 **0.271 µs** 다 (특징 전체 15.6 µs 대비 무시 가능).
+        # `elen == 0` ⟺ `step < 0` 이 **정확히 일치**함을 확인했으므로 (차단 칸 수 0)
+        # 차단 마스크를 따로 두지 않는다 — `elen` 한 묶음이 차단과 자유거리를 다 담는다.
+        #
+        # ★ **그래프당 1회 사전계산.** `elen`·`clearance` 는 그래프마다 고정이므로 상태마다
+        # 다시 계산할 이유가 없다. 상태마다 `np.log1p` 를 부르면 특징 비용이 15.6 → 19.97 µs
+        # (+28%) 가 되고, 판정이 벽시계라 그만큼이 학습 효과를 깎아먹는다 (D98·설계안 §15).
+        # 빌드 비용은 2.7M 원소 log1p ≈ 20 ms 로 `build_sec`(약 5.4 s) 대비 무시 가능하다.
+        inv_log_diag = 1.0 / math.log1p(DIAG_MM)
+        # 로그 척도 — 실측 분포가 10 ~ 52,736 mm (중앙 440 · p90 4,327) 로 꼬리가 두껍다
+        self.elen_log = (np.log1p(g.elen) * inv_log_diag).astype(np.float32)
+        self.n_out_ratio = ((g.elen > 0).sum(1) / N_DIRS).astype(np.float32)
+        # 여유는 **구경 상대**로 본다 ("반지름 몇 개만큼 공간이 있나") — 크기 비의존 (D-r).
+        # inf = 근처에 장애물 없음 → 1.0 (`np.minimum` 이 inf 를 그대로 잘라준다)
+        clr = np.asarray(g.clearance, dtype=float)
+        self.clr_r = np.minimum(np.nan_to_num(clr, nan=0.0, posinf=1e18)
+                                / (20.0 * self.r), 1.0).astype(np.float32)
 
     def one(self, s, h_val: float) -> np.ndarray:
         g = self.g
@@ -139,7 +163,18 @@ class FeatureMaker:
         v[i + 3] = self.turn90 / DIAG_MM
         v[i + 4] = self.bend_u90          # 90° 꺾을 때 먹는 서포트 간격 비율 (M29 가 걸리는 자리)
         i += 5
-        # i, i+1 = 장애물 속성 예약 (S2) — 0 으로 둔다
+        i += 2          # 장애물 속성 예약 (S2) — 0 으로 둔다
+
+        # ── 장애물 기하 ─────────────────────────────────────────────────────
+        # **왜 필요한가 (2026-11-09).** 앞 68칸에는 장애물이 **직접 들어가 있지 않았다.**
+        # `obs_supportable`·`obs_penetrable` 은 S2 예약으로 항상 0 이고 학습 보고서의
+        # 죽은 채널 목록에 올라와 있다. 장애물이 망에 닿는 경로는 `h_norm`(숫자 하나)과
+        # 후보 목록의 존재 여부뿐이었다 — "왼쪽에 벽이 있다" 를 망이 볼 수 없었다.
+        # §16-6 이 "유일하게 남은 설계 후보" 로 지목한 관측 설계와 같은 자리다.
+        v[i:i + N_DIRS] = self.elen_log[s.node]        # 0 = 차단 / 클수록 트였다
+        i += N_DIRS
+        v[i] = self.n_out_ratio[s.node]                # 열린 출구 비율 (실측 중앙 8/18)
+        v[i + 1] = self.clr_r[s.node]                  # 가장 가까운 장애물까지, 반지름 단위
         return v
 
 

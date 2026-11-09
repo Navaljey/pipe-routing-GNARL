@@ -111,11 +111,24 @@ def main(argv=None) -> int:
     ap.add_argument("--depth", type=int, default=2)
     ap.add_argument("--val-frac", type=float, default=0.15)
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--shuffle-cols", default="",
+                    help="대조군: 'a:b' 구간의 채널을 **결정 간에 섞는다**. 정보는 파괴하고 "
+                         "용량(파라미터 수)은 유지하므로 '새 채널이 정보를 줬나' 와 "
+                         "'망이 커져서 좋아졌나' 를 가른다. 예: --shuffle-cols 68:88")
     a = ap.parse_args(argv)
 
     torch.manual_seed(a.seed)
     d = np.load(a.npz, allow_pickle=True)
     X = d["X"].astype(np.float32)                 # (N, N_CAND, DIM)
+    if a.shuffle_cols:
+        # ★ §23 에서 배운 것 — 대조군은 **같은 가중치를 다르게 읽는 것이 아니라**
+        # 정보를 실제로 없앤 것이어야 한다 (`h_only` 가 대조군이 아니었던 이유).
+        # 결정 축만 섞고 후보 축은 보존한다: 한 결정 안 후보 16개의 상대 관계를 깨면
+        # "장애물 정보가 없는 것" 이 아니라 "모순된 장애물 정보" 가 되어 과제가 더 어려워진다.
+        lo, hi = (int(x) for x in a.shuffle_cols.split(":"))
+        perm = np.random.default_rng(a.seed).permutation(X.shape[0])
+        X[:, :, lo:hi] = X[perm][:, :, lo:hi]
+        print(f"⚠️  대조군: 채널 [{lo}:{hi}] 을 결정 간에 섞었다 (정보 파괴 · 용량 유지)")
     gold = d["gold"].astype(np.int64)
     nv = d["n_valid"].astype(np.int64)
     route = d["route"]
