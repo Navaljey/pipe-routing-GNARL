@@ -194,6 +194,8 @@ def main(argv=None) -> int:
                     row["base_vs_Cstar"] = b["cost"] / rb.J
                 row["J_ratio"] = c["J_verifier"] / b["J_verifier"] if b["J_verifier"] else None
             rows.append(row)
+            with open(a.out + ".partial.jsonl", "a", encoding="utf-8") as fp:   # 컨테이너 재시작 대비
+                fp.write(json.dumps(row, ensure_ascii=False, default=float) + "\n")
             print(f"  {name}/{pipe.id} {pipe.nominal_size}: 컴파일 {rb.status} {rb.expanded} | "
                   f"기준 {b['status']} {b['expanded']} | CEA {c['status']} {c['expanded']} "
                   f"(재열기 {c['reopened']}) | R {row.get('R_expanded', float('nan')):.3f} "
