@@ -56,7 +56,19 @@ from v3.train_cea import CEAHeuristic                                    # noqa:
 GEN_KW = dict(n_pipes=10)
 
 
-def astar_py(space, pipe, h, *, expand_limit: int, time_limit: float):
+def rss_gb() -> float:
+    """현재 프로세스 RSS (GB). /proc 이 없으면 0."""
+    try:
+        with open("/proc/self/statm") as fp:
+            return int(fp.read().split()[1]) * os.sysconf("SC_PAGE_SIZE") / 2**30
+    except OSError:
+        return 0.0
+
+
+MEM_LIMIT_GB = 4.5   # 컨테이너 7 GB — 1-B argmax 측정이 6.1 GB 에서 OOM 으로 죽은 뒤 추가 (§29.7)
+
+
+def astar_py(space, pipe, h, *, expand_limit: int, time_limit: float, mem_limit: float = MEM_LIMIT_GB):
     """평범한 A\\* — f 순 pop, 지배 가지치기는 `focal.py` 와 같은 규칙, 재열기 허용.
 
     → (status, cost, chain, expanded, generated, reopened, sec)
@@ -86,9 +98,11 @@ def astar_py(space, pipe, h, *, expand_limit: int, time_limit: float):
                 cur = parent[cur]
             chain.reverse()
             return "ok", g, chain, expanded, generated, reopened, time.perf_counter() - t0
-        if expanded % 2048 == 0 and (expanded >= expand_limit
-                                     or time.perf_counter() - t0 > time_limit):
-            return "budget_exhausted", None, [], expanded, generated, reopened, time.perf_counter() - t0
+        if expanded % 2048 == 0:
+            if expanded >= expand_limit or time.perf_counter() - t0 > time_limit:
+                return "budget_exhausted", None, [], expanded, generated, reopened, time.perf_counter() - t0
+            if mem_limit and rss_gb() > mem_limit:      # 기준·CEA 똑같이 적용 → 짝에서 빠진다
+                return "memory_exhausted", None, [], expanded, generated, reopened, time.perf_counter() - t0
         for nb in space.neighbors(s, pipe):
             ng = g + space.cost(s, nb, pipe)
             if ng + EPS < g_best.get(nb, math.inf) and not _dominated(closed, nb, ng):
@@ -141,6 +155,9 @@ def main(argv=None) -> int:
     ap.add_argument("--py-budget", type=int, default=600_000, help="파이썬 A* 확장 상한 (양쪽 같음)")
     ap.add_argument("--py-time", type=float, default=180.0, help="변형당 시간 상한 (s)")
     ap.add_argument("--out", required=True)
+    ap.add_argument("--resume", action="store_true",
+                    help="<out>.partial.jsonl 에 있는 배관은 건너뛰고 그 행을 그대로 쓴다")
+    ap.add_argument("--mem-limit", type=float, default=MEM_LIMIT_GB, help="변형당 RSS 상한 (GB), 0 = 없음")
     standard_guard.add_argument(ap)
     a = ap.parse_args(argv)
 
@@ -154,10 +171,25 @@ def main(argv=None) -> int:
         raise SystemExit("서포트 표 해시 불일치 — 중단")
 
     rows: list[dict] = []
+    done: set = set()
+    part = pathlib.Path(a.out + ".partial.jsonl")
+    if a.resume and part.exists():
+        for line in part.read_text(encoding="utf-8").splitlines():
+            r = json.loads(line)
+            if (r["scenario"], r["pipe_id"]) not in done:
+                done.add((r["scenario"], r["pipe_id"]))
+                rows.append(r)
+        print(f"이어서: 이미 끝난 배관 {len(done)}", flush=True)
+    elif part.exists():
+        raise SystemExit(f"{part} 가 이미 있다 — --resume 을 주거나 지운다")
+    import gc
     for seed in seeds:
         name = f"valid_{seed}"
         sc = generate(GeneratorConfig(seed=seed, **GEN_KW), name)
         for pipe in sc.pipes:
+            if (name, pipe.id) in done:
+                continue
+            gc.collect()
             g = LayeredGraph(sc, pipe, (), local_lines=False, support_cost=True, reserved=(), grid=G0)
             hf = heuristic_factory(g, pipe)
             row = {"scenario": name, "seed": seed, "pipe_id": pipe.id, "size": pipe.nominal_size,
@@ -172,9 +204,11 @@ def main(argv=None) -> int:
                 stat = {"sec": 0.0, "calls": 0, "lifted": 0}
                 h = hf if var == "base" else make_cea_h(cea, g, pipe, hf, stat)
                 st, cost, chain, ex, gen, reo, sec = astar_py(
-                    g, pipe, h, expand_limit=a.py_budget, time_limit=a.py_time)
+                    g, pipe, h, expand_limit=a.py_budget, time_limit=a.py_time, mem_limit=a.mem_limit)
                 d = {"status": st, "cost": cost, "expanded": ex, "generated": gen,
-                     "reopened": reo, "sec": round(sec, 3)}
+                     "reopened": reo, "sec": round(sec, 3), "rss_gb": round(rss_gb(), 2)}
+                del h
+                gc.collect()
                 if var == "cea":
                     d.update(h_calls=stat["calls"], h_lifted=stat["lifted"],
                              h_sec=round(stat["sec"], 3))
@@ -209,7 +243,9 @@ def main(argv=None) -> int:
             "cea_only_ok": sum(r.get("cea", {}).get("status") == "ok"
                                and r.get("base", {}).get("status") != "ok" for r in rows),
             "base_only_ok": sum(r.get("base", {}).get("status") == "ok"
-                                and r.get("cea", {}).get("status") != "ok" for r in rows)}
+                                and r.get("cea", {}).get("status") != "ok" for r in rows),
+            "memory_exhausted": sum(r.get(v, {}).get("status") == "memory_exhausted"
+                                    for r in rows for v in ("base", "cea"))}
     if pair:
         R = [r["R_expanded"] for r in pair]
         cr = [max(r["cost_ratio"], r.get("cost_vs_Cstar", 0.0)) for r in pair]
