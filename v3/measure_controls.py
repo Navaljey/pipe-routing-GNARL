@@ -51,13 +51,16 @@ def relaxed_dist(g, pipe) -> tuple[np.ndarray, float]:
     src, d = np.nonzero((g.step >= 0) & (g.emask != 0))
     dst = g.step[src, d]
     w = g.elen[src, d] / 1000.0 * kgpm + g.scost[src, d]
-    # 같은 (src, dst) 쌍이 여럿이면 가장 싼 것만 — coo → csr 은 중복을 **더하므로** 먼저 줄인다
+    # 같은 (src, dst) 쌍이 여럿이면 가장 싼 것만 — coo → csr 은 중복을 **더하므로** 먼저 줄인다.
+    # escape graph 는 (노드, 방향) 마다 이웃이 하나라 보통 중복이 없다 → 확인만 하고 있을 때만 정렬 (결과 같음)
     key = src.astype(np.int64) * n + dst
-    order = np.lexsort((w, key))
-    key, w, src, dst = key[order], w[order], src[order], dst[order]
-    first = np.ones(len(key), bool)
-    first[1:] = key[1:] != key[:-1]
-    src, dst, w = src[first], dst[first], np.maximum(w[first], 1e-12)   # 0 무게는 csgraph 가 '엣지 없음' 으로 읽는다
+    if len(np.unique(key)) != len(key):
+        order = np.lexsort((w, key))
+        key, w, src, dst = key[order], w[order], src[order], dst[order]
+        first = np.ones(len(key), bool)
+        first[1:] = key[1:] != key[:-1]
+        src, dst, w = src[first], dst[first], w[first]
+    w = np.maximum(w, 1e-12)            # 0 무게는 csgraph 가 '엣지 없음' 으로 읽는다
     # 역방향: dst → src 로 뒤집어 목표에서 한 번에
     m = coo_matrix((w, (dst, src)), shape=(n, n)).tocsr()
     goal = _goal_node(g, pipe)
