@@ -198,6 +198,8 @@ def main(argv=None) -> int:
             row["compiled"] = {"status": rb.status, "expanded": rb.expanded, "cost": rb.J}
             if rb.status == "unreachable":
                 rows.append(row)
+                with open(a.out + ".partial.jsonl", "a", encoding="utf-8") as fp:   # --resume 가 다시 안 돌게
+                    fp.write(json.dumps(row, ensure_ascii=False, default=float) + "\n")
                 print(f"  {name}/{pipe.id} {pipe.nominal_size}: 도달불가 — 건너뜀", flush=True)
                 continue
             for var in ("base", "cea"):
