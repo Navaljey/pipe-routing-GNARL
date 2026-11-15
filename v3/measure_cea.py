@@ -74,6 +74,7 @@ def astar_py(space, pipe, h, *, expand_limit: int, time_limit: float, mem_limit:
     → (status, cost, chain, expanded, generated, reopened, sec)
     """
     t0 = time.perf_counter()
+    rss0 = rss_gb() if mem_limit else 0.0    # ★ 증가분으로 본다 — 프로세스 누적분으로 엉뚱한 배관이 걸리지 않게 (§30)
     start = space.start_state(pipe)
     tie = itertools.count()
     open_h = [(h(start), next(tie), 0.0, start)]
@@ -101,7 +102,7 @@ def astar_py(space, pipe, h, *, expand_limit: int, time_limit: float, mem_limit:
         if expanded % 2048 == 0:
             if expanded >= expand_limit or time.perf_counter() - t0 > time_limit:
                 return "budget_exhausted", None, [], expanded, generated, reopened, time.perf_counter() - t0
-            if mem_limit and rss_gb() > mem_limit:      # 기준·CEA 똑같이 적용 → 짝에서 빠진다
+            if mem_limit and rss_gb() - rss0 > mem_limit:   # 기준·CEA 똑같이 적용 → 짝에서 빠진다
                 return "memory_exhausted", None, [], expanded, generated, reopened, time.perf_counter() - t0
         for nb in space.neighbors(s, pipe):
             ng = g + space.cost(s, nb, pipe)
