@@ -231,6 +231,25 @@ def main(argv=None) -> int:
         summ["gate_a"] = bool(max(cr) <= 1.01 and (not jr or max(jr) <= 1.01))
         summ["gate_b"] = bool(summ["R_median"] > 1.36)
         summ["gate"] = summ["gate_a"] and summ["gate_b"]
+        # ── 관문 v2 (§29.7, 2026-11-15 소유자 선택 — 측정 전 선언) ─────────────────
+        # (a2) 합계: Σ라우터 비용 비 ≤ 1.01 (기준 대비·C* 대비 중 큰 쪽) 그리고 Σ검증기 J 비 ≤ 1.01
+        # (a3) 배관별 상한: 모든 짝지은 배관에서 라우터 비용 비 ≤ 1.05 그리고 검증기 J 비 ≤ 1.05
+        # (b)  그대로
+        s_c = sum(r["cea"]["cost"] for r in pair)
+        s_b = sum(r["base"]["cost"] for r in pair)
+        cs = [r for r in pair if "cost_vs_Cstar" in r]
+        s_cost_vs_C = (sum(r["cea"]["cost"] for r in cs)
+                       / sum(r["cea"]["cost"] / r["cost_vs_Cstar"] for r in cs)) if cs else 0.0
+        jp = [r for r in pair if r["J_ratio"] is not None]
+        s_J = (sum(r["cea"]["J_verifier"] for r in jp)
+               / sum(r["base"]["J_verifier"] for r in jp)) if jp else None
+        summ.update(
+            sum_cost_ratio=round(s_c / s_b, 5), sum_cost_vs_Cstar=round(s_cost_vs_C, 5),
+            sum_J_ratio=round(s_J, 5) if s_J is not None else None,
+            n_cost_over_5pct=sum(x > 1.05 for x in cr), n_J_over_5pct=sum(x > 1.05 for x in jr))
+        summ["gate_a2"] = bool(max(s_c / s_b, s_cost_vs_C) <= 1.01 and (s_J is None or s_J <= 1.01))
+        summ["gate_a3"] = bool(max(cr) <= 1.05 and (not jr or max(jr) <= 1.05))
+        summ["gate_v2"] = summ["gate_a2"] and summ["gate_a3"] and summ["gate_b"]
     out = {"support_standard": std_info, "ckpt": a.ckpt, "decode": a.decode,
            "seeds": [seeds[0], seeds[-1]], "py_budget": a.py_budget, "py_time": a.py_time,
            "summary": summ, "rows": rows}
