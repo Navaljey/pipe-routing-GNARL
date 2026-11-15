@@ -50,7 +50,7 @@ from pipe_routing.verifier.core import PipeRoute, verify                # noqa: 
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 from v3 import features, guards, standard_guard                          # noqa: E402
-from v3.focal import EPS, _dominated                                     # noqa: E402
+from v3.focal import EPS, _dominated, closed_entry                       # noqa: E402
 from v3.train_cea import CEAHeuristic                                    # noqa: E402
 
 GEN_KW = dict(n_pipes=10)
@@ -89,7 +89,7 @@ def astar_py(space, pipe, h, *, expand_limit: int, time_limit: float, mem_limit:
         if s in closed_states:
             reopened += 1
         closed_states.add(s)
-        closed.setdefault((s.node, s.dir), []).append((s.run, s.bend, s.ends, s.hz, g))
+        closed.setdefault((s.node, s.dir), []).append(closed_entry(s, g))
         expanded += 1
         if space.is_goal(s, pipe):
             chain, cur = [], s

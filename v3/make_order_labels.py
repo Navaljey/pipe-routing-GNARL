@@ -171,7 +171,7 @@ def oracle_order_labels(g, pipe, path_states, eps: float, budget: int, rng) -> d
                 break
             continue
 
-        closed.setdefault((s.node, s.dir), []).append((s.run, s.bend, s.ends, s.hz, gv))
+        closed.setdefault((s.node, s.dir), []).append(focal.closed_entry(s, gv))
         expanded += 1
         if g.is_goal(s, pipe):
             return {"status": "ok", "expanded": expanded, "samples": samples}

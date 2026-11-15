@@ -34,7 +34,7 @@ if str(SK) not in sys.path:
     sys.path.insert(0, str(SK))
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 
-from pipe_routing.layered import G0, LayeredGraph, heuristic_factory   # noqa: E402
+from pipe_routing.layered import G0, LayeredGraph, _route, heuristic_factory   # noqa: E402
 from pipe_routing.router_astar import astar_route                      # noqa: E402
 from pipe_routing.scenario import load                                 # noqa: E402
 
@@ -66,7 +66,10 @@ def compare(sc, pipe, limit: int = LIMIT):
     전개 순서가 같았다는 뜻이다.
     """
     g1 = _graph(sc, pipe)
-    ref = astar_route(g1, pipe, time_limit=1e9, impl="python", expand_limit=limit)
+    # ★ 기준 = 컴파일 A* (`layered._route` → astar_route_generic). LayeredGraph 에서 `astar_route` 는
+    # 파이썬 경로로 가는데, 그쪽 지배 판정에 `su` 가 빠져 있어 우리 쪽 같은 결함과 "같이 틀려서"
+    # 일치했다 (설계안 §30.1). 기준선 정의는 컴파일 경로다.
+    ref = _route(g1, pipe, 1e9, limit)
 
     g2 = _graph(sc, pipe)
     got = focal_search(g2, pipe, heuristic_factory(g2, pipe), eps=0.0, expand_limit=limit)

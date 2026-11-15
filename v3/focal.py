@@ -34,10 +34,21 @@ EPS = 1e-9
 # 지배 가지치기 — skeleton router_astar.dominated 와 같은 규칙 (D45·D60·D61·D65)
 # ---------------------------------------------------------------------------
 
+def closed_entry(s, g) -> tuple:
+    """확정 목록에 넣는 항목 — `_dominated` 와 같은 순서."""
+    return (s.run, s.bend, s.ends, s.hz, s.su, g)
+
+
 def _dominated(closed, s, g) -> bool:
-    """같은 (node, dir) 에서 run ≥ · bend ≤ · ends ⊇ · hz ≤ · g ≤ 인 확정 상태가 있으면 버린다."""
-    for run, bend, ends, hz, gc in closed.get((s.node, s.dir), ()):
-        if run >= s.run and bend <= s.bend and (ends & s.ends) == s.ends and hz <= s.hz and gc <= g + EPS:
+    """같은 (node, dir) 에서 run ≥ · bend ≤ · ends ⊇ · hz ≤ · su ≤ · g ≤ 인 확정 상태가 있으면 버린다.
+
+    `su` (D80 ⑨) 는 skeleton 컴파일 A* (`astar_fast._search_generic`, `c_u <= u`) 와 같게 본다.
+    2026-11-15 이전에는 빠져 있었다 — 최적 경로를 잘라낼 수 있었다 (설계안 §30.1).
+    확정 목록 항목은 `closed_entry(s, g)` 로 만든다.
+    """
+    for run, bend, ends, hz, su, gc in closed.get((s.node, s.dir), ()):
+        if (run >= s.run and bend <= s.bend and (ends & s.ends) == s.ends and hz <= s.hz
+                and su <= s.su and gc <= g + EPS):
             return True
     return False
 
@@ -162,7 +173,7 @@ def focal_search(space, pipe, heuristic, *, eps: float = 0.0, priority=None,
 
         if g > g_best.get(s, math.inf) + EPS or _dominated(closed, s, g):
             continue
-        closed.setdefault((s.node, s.dir), []).append((s.run, s.bend, s.ends, s.hz, g))
+        closed.setdefault((s.node, s.dir), []).append(closed_entry(s, g))
         expanded += 1
 
         if space.is_goal(s, pipe):
@@ -271,7 +282,7 @@ def focal_search_dual(space, pipe, heuristic, *, eps: float, priority,
                 break
             continue        # 문턱이 오르면 pending 에서 더 들어온다
 
-        closed.setdefault((s.node, s.dir), []).append((s.run, s.bend, s.ends, s.hz, g))
+        closed.setdefault((s.node, s.dir), []).append(closed_entry(s, g))
         expanded += 1
         if on_expand is not None:        # 진단용 (막다른 확장 비율 측정, 설계안 §28). 기본 None
             on_expand(s, g)
