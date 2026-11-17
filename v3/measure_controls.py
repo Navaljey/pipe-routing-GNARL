@@ -38,7 +38,7 @@ from v3.train_cea import CEAHeuristic                                    # noqa:
 from pipe_routing.generator import GeneratorConfig, generate            # noqa: E402
 from pipe_routing.layered import (EXPAND_BUDGET, G0, LayeredGraph,       # noqa: E402
                                   _route, clear_cache, heuristic_factory)
-from pipe_routing.constants import PIPE_SPECS                           # noqa: E402
+from pipe_routing.pipe_spec import pipe_spec                            # noqa: E402
 
 
 def relaxed_dist(g, pipe) -> tuple[np.ndarray, float]:
@@ -46,7 +46,7 @@ def relaxed_dist(g, pipe) -> tuple[np.ndarray, float]:
     from scipy.sparse import coo_matrix
     from scipy.sparse.csgraph import dijkstra
     t0 = time.perf_counter()
-    kgpm = PIPE_SPECS[pipe.nominal_size].kg_per_m
+    kgpm = pipe_spec(pipe).kg_per_m       # S2-0b — 배관별 사양은 이 함수로만
     n = g.step.shape[0]
     src, d = np.nonzero((g.step >= 0) & (g.emask != 0))
     dst = g.step[src, d]

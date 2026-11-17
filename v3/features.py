@@ -32,7 +32,8 @@ SK = pathlib.Path(os.environ.get("SKELETON_ROOT", "/home/claude/navaljey/pipe-ro
 if str(SK) not in sys.path:
     sys.path.insert(0, str(SK))
 
-from pipe_routing.constants import FITTINGS, PIPE_SPECS                 # noqa: E402
+from pipe_routing.constants import PIPE_SPECS                           # noqa: E402
+from pipe_routing.pipe_spec import pipe_spec                            # noqa: E402
 from pipe_routing.space import DIRS                                     # noqa: E402
 
 N_DIRS = len(DIRS)          # 18 — escape graph (D41)
@@ -42,7 +43,7 @@ BEND_IDX = {0: 0, 45: 1, 90: 2, 135: 3}
 #: 정규화 상수. 2단계에서 맵이 커져도 **같은 값을 쓴다** — 특징이 맵 크기에 따라
 #: 바뀌면 1단계 망을 그대로 이어받을 수 없다 (D-r).
 DIAG_MM = math.dist((0, 0, 0), (40000, 40000, 10000))   # 단일 블록 대각 ≈ 57,446 mm
-KG_PER_M_MAX = PIPE_SPECS["500A"].kg_per_m               # 185.0
+KG_PER_M_MAX = PIPE_SPECS["500A"].kg_per_m               # 185.0 — 정규화 상수 (배관 사양 조회 아님, 학습된 망과 고정)
 R_MAX = PIPE_SPECS["500A"].od / 2                        # 254 mm
 
 NAMES: list[str] = (
@@ -83,13 +84,12 @@ class FeatureMaker:
     def __init__(self, g, pipe):
         self.g = g
         self.pipe = pipe
-        spec = PIPE_SPECS[pipe.nominal_size]
-        fit = FITTINGS[pipe.nominal_size]
+        spec = pipe_spec(pipe)            # S2-0b 공개 API — 배관별 class·보온 반영 (사내 class 표면 비공개 값, D78)
         self.goal = np.asarray(pipe.end.pos, float)
         self.end_dir = tuple(pipe.end.dir)
         self.end_dir_idx = DIRS.index(self.end_dir) if self.end_dir in DIRS else -1
         self.kg_per_m = spec.kg_per_m
-        self.e90 = fit.elbow90
+        self.e90 = spec.elbow90
         self.r = spec.od / 2
         self.is_grav = bool(pipe.gravity_pipe)
         self.lmax = float(getattr(g, "lmax", 0.0)) or 1.0
