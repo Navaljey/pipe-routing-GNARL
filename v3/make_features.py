@@ -32,6 +32,7 @@ from pipe_routing.layered import G0, LayeredGraph, clear_cache          # noqa: 
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 from v3 import features, guards, standard_guard                         # noqa: E402
+from v3.measure_controls import relaxed_dist                             # noqa: E402
 
 GEN_KW = dict(n_pipes=10)
 
@@ -75,6 +76,7 @@ def main(argv=None) -> int:
     y_pen: list[np.ndarray] = []
     y_hops: list[np.ndarray] = []
     hv: list[np.ndarray] = []
+    rgv: list[np.ndarray] = []    # 완화 그래프 거리 rg(node) (§30.10) — 상태 노드별 하한, kg
     meta: list[tuple] = []        # (라우트 인덱스, 시드, 구경, 중력관) — 밴드별 보고용 (D-v)
     t0 = time.perf_counter()
     cur_seed = None
@@ -99,6 +101,8 @@ def main(argv=None) -> int:
         # 에 걸려 있어서 priority 는 무엇이든 될 수 있다 — 그러니 속도용 양을 쓰는 것이 맞다
         y_hops.append(np.arange(r["n_states"] - 1, -1, -1, dtype=np.float32))
         hv.append(np.asarray(r["h"], dtype=np.float32))
+        dist, _ = relaxed_dist(g, pipe)
+        rgv.append(np.asarray(dist[np.asarray(r["node"], dtype=np.int64)], dtype=np.float32))
         meta += [(ri, r["seed"], r["size"], int(r["gravity"]))] * r["n_states"]
         if (ri + 1) % 25 == 0:
             print(f"  {ri + 1}/{len(rows)} · {round(time.perf_counter() - t0)}s", flush=True)
@@ -109,6 +113,7 @@ def main(argv=None) -> int:
         out,
         X=np.concatenate(X), y_pe=np.concatenate(y_pe), y_sup=np.concatenate(y_sup),
         y_pen=np.concatenate(y_pen), y_hops=np.concatenate(y_hops), h=np.concatenate(hv),
+        rg=np.concatenate(rgv),
         route=np.asarray([m[0] for m in meta], dtype=np.int32),
         seed=np.asarray([m[1] for m in meta], dtype=np.int64),
         size=np.asarray([m[2] for m in meta]),

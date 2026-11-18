@@ -239,6 +239,8 @@ def main(argv=None) -> int:
     ap.add_argument("--patience", type=int, default=3, help="과대추정 미개선 n회면 β·η 절반 (부록 J)")
     ap.add_argument("--val-frac", type=float, default=0.15)
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--base-h", choices=("h", "rg"), default="h",
+                    help="비율의 분모. rg = max(h, rg) (§30.10) — npz 에 rg 열이 있어야 하고, 입력에 rg 2칸을 덧붙인다")
     a = ap.parse_args(argv)
 
     parts = [np.load(p, allow_pickle=True) for p in a.npz]
@@ -252,6 +254,20 @@ def main(argv=None) -> int:
     route = np.concatenate([d["route"].astype(np.int64) + 1_000_000 * i for i, d in enumerate(parts)])
     names = list(parts[0]["names"])
     std = str(parts[0]["support_standard"][0])
+    if a.base_h == "rg":
+        # ★ 분모를 max(h, rg) 로 — 망은 rg 가 못 본 몫만 배운다. 입력 2칸 추가:
+        #   rg_norm   = rg 를 h_norm 과 같은 척도로 (h_norm / h 가 배관별 척도)
+        #   rg_over_h = log(max(h, rg) / h)  — rg 가 h 보다 얼마나 단단한가
+        rg = cat("rg").astype(np.float64)
+        hn = X[:, names.index("h_norm")].astype(np.float64)
+        scale = np.where(h > 1e-9, hn / np.where(h > 1e-9, h, 1.0), 0.0)
+        hb = np.maximum(h, rg)
+        X = np.concatenate([X, np.stack([rg * scale, np.log(np.where(h > 1e-9, hb / np.where(h > 1e-9, h, 1.0), 1.0))],
+                                        1).astype(np.float32)], 1)
+        names = names + ["rg_norm", "rg_over_h"]
+        n_bad = int((rg > hstar + 1e-3).sum())
+        print(f"rg 분모 — rg > h* 인 상태 {n_bad} (≠ 0 이면 rg 가 admissible 이 아니다)")
+        h = hb
 
     keep = (h > 1e-9) & (hstar > 1e-9)
     r = hstar / np.where(h > 1e-9, h, 1.0)
@@ -311,7 +327,7 @@ def main(argv=None) -> int:
     out = pathlib.Path(a.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     arrs = {f"W{i}": W for i, W in enumerate(net.W)} | {f"b{i}": b for i, b in enumerate(net.b)}
-    np.savez(out, **arrs, n_layers=len(net.W), mu=mu, sd=sd, base=a.base, k=a.k, dim=X.shape[1],
+    np.savez(out, **arrs, n_layers=len(net.W), mu=mu, sd=sd, base=a.base, k=a.k, dim=X.shape[1], base_h=a.base_h,
              names=np.asarray(names), support_standard=np.asarray(std), beta=beta, eta=eta)
     out.with_suffix(".report.json").write_text(json.dumps(
         {"final": fin, "hist": hist, "class_hist": cnt.tolist(), "n_inadmissible_h": n_inadm,

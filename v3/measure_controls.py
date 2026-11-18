@@ -22,6 +22,7 @@ from __future__ import annotations
 import argparse
 import gc
 import json
+import math
 import pathlib
 import statistics
 import sys
@@ -91,12 +92,53 @@ def make_h(var: str, g, pipe, hf, cea_cache: dict, ckpt: str, stat: dict):
             hv = hf(s)
             return hv if v < hv else float(v)      # inf 면 그대로 inf → 그 상태는 사실상 버려진다
         return h
+    if var.startswith("cearg"):
+        # §30.10 ②-a: rg 위 CEA — 변형 이름 cearg<은닉>_<디코딩>, 체크포인트 ckpt/cea_rg_h<은닉>.npz
+        hid, dec = var[5:].split("_", 1)
+        key = (hid, dec)
+        if key not in cea_cache:
+            cea_cache[key] = CEAHeuristic(f"ckpt/cea_rg_h{hid}.npz", dec)
+        dist, sec = relaxed_dist(g, pipe)
+        stat["pre_sec"] = sec
+        return make_cea_rg_h(cea_cache[key], g, pipe, hf, dist, stat)
     if var.startswith("cea_"):
         dec = var[4:]
         if dec not in cea_cache:
             cea_cache[dec] = CEAHeuristic(ckpt, dec)
         return make_cea_h(cea_cache[dec], g, pipe, hf, stat)
     raise SystemExit(f"모르는 변형 {var}")
+
+
+def make_cea_rg_h(cea, g, pipe, hf, dist, stat):
+    """max(hb, hb·ê), hb = max(h, rg). 입력 = 기존 특징 + [rg_norm, log(hb/h)] (train_cea --base-h rg 와 같은 식)."""
+    from v3 import features
+    assert str(getattr(cea, "base_h", "rg")) in ("rg",)
+    fm = features.FeatureMaker(g, pipe)
+    ih = features.NAMES.index("h_norm")
+    cache: dict = {}
+
+    def h(s):
+        v = cache.get(s)
+        if v is not None:
+            return v
+        hv = hf(s)
+        rgv = float(dist[s.node])
+        hb = rgv if rgv > hv else hv
+        if hv <= 0.0 or not np.isfinite(hb):
+            v = hb
+        else:
+            t = time.perf_counter()
+            x = fm.one(s, hv)
+            scale = float(x[ih]) / hv
+            xe = np.concatenate([x, np.asarray([rgv * scale, math.log(hb / hv)], np.float32)])
+            r = cea.ratio(xe)
+            stat["sec"] += time.perf_counter() - t
+            stat["calls"] += 1
+            stat["lifted"] += r > 1.0
+            v = hb * r if r > 1.0 else hb
+        cache[s] = v
+        return v
+    return h
 
 
 def main(argv=None) -> int:
@@ -164,7 +206,7 @@ def main(argv=None) -> int:
                     for k in ("pre_sec", "unreach_nodes"):
                         if k in stat:
                             d[k] = stat[k]
-                    if var.startswith("cea_"):
+                    if var.startswith("cea"):
                         d.update(h_calls=stat["calls"], h_sec=round(stat["sec"], 3))
                     if st == "ok":
                         J, ok, _ = verifier_J(sc, g, pipe, chain, std)
