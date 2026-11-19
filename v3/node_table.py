@@ -35,6 +35,7 @@ from pipe_routing.pipe_spec import pipe_spec
 from pipe_routing.space import DIRS
 
 SUBSET_FACTOR = 3.0
+ELLIPSE_F = 2.5     # §33.4 — C*/rg(start) p90 2.38 (§30.9) 위, w=1.1 여유는 포함하지 않는다 (밖은 htab=rg, admissible 유지)
 
 NAMES = (["goal_dx", "goal_dy", "goal_dz", "goal_dist", "pos_x", "pos_y", "pos_z",
           "rg_norm", "log_rg_over_euclid"]
@@ -134,10 +135,20 @@ class NodeCF:
             k = (np.cumsum(p, 1) >= float(self.mode[1:])).argmax(1)
         return self.base ** k
 
+    subset = "rg3"      # "rg3" = rg ≤ 3·rg(start) (§33.1) · "ellipse" = §33.4
+
     def table(self, g, pipe, rg: np.ndarray, start_node: int) -> tuple[np.ndarray, dict]:
         """→ (htab, 통계). 시간은 호출자가 잰다 (특징 + 추론 전부 포함)."""
-        lim = SUBSET_FACTOR * float(rg[start_node])
-        idx = np.nonzero(np.isfinite(rg) & (rg > 0) & (rg <= lim))[0]
+        r0 = float(rg[start_node])
+        if self.subset == "ellipse":
+            # §33.4: f 하한 = (출발점에서의 유클리드 직관 비용) + rg ≤ ELLIPSE_F·rg(start) 인 노드만.
+            # 확장되는 노드는 g + h ≤ w·C* 이고 g ≥ 유클리드 직관 비용, h ≥ rg.
+            kgpm = pipe_spec(pipe).kg_per_m
+            p = np.asarray(g.pos, float)
+            eu = np.linalg.norm(p - p[start_node], axis=1) / 1000.0 * kgpm
+            idx = np.nonzero(np.isfinite(rg) & (rg > 0) & (eu + rg <= ELLIPSE_F * r0))[0]
+        else:
+            idx = np.nonzero(np.isfinite(rg) & (rg > 0) & (rg <= SUBSET_FACTOR * r0))[0]
         t = time.perf_counter()
         X = node_features(g, pipe, rg, idx)
         t1 = time.perf_counter()

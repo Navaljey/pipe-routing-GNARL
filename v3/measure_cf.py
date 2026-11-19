@@ -43,6 +43,10 @@ def main(argv=None) -> int:
     ap.add_argument("--budget", type=int, default=EXPAND_BUDGET)
     ap.add_argument("--ckpt", nargs="+", required=True, help="이름=경로 또는 경로 (이름은 파일 stem)")
     ap.add_argument("--decode", default="q0.05,argmax")
+    ap.add_argument("--weights", default="1.0", help="cf 변형 가중 w 목록 (§33.4)")
+    ap.add_argument("--subset", default="rg3", choices=["rg3", "ellipse"])
+    ap.add_argument("--base-from", default=None, help="base 결과를 이전 측정 jsonl 에서 재사용 (상태·J 만, §33.4)")
+    ap.add_argument("--skip-base-fail", action="store_true", help="base 실패 배관은 건너뜀 (§33.4)")
     ap.add_argument("--out", required=True)
     ap.add_argument("--resume", action="store_true")
     standard_guard.add_argument(ap)
@@ -58,7 +62,16 @@ def main(argv=None) -> int:
     for c in a.ckpt:
         nm, path = c.split("=", 1) if "=" in c else (pathlib.Path(c).stem, c)
         for dec in a.decode.split(","):
-            models[f"cf_{nm}_{dec}"] = NodeCF(path, dec)
+            m = NodeCF(path, dec)
+            m.subset = a.subset
+            for w in a.weights.split(","):
+                models[f"cf_{nm}_{dec}_w{w}"] = (m, float(w))
+    base_prev = {}
+    if a.base_from:
+        for l in open(a.base_from, encoding="utf-8"):
+            if l.strip():
+                r = json.loads(l)
+                base_prev[(r["scenario"], r["pipe_id"])] = r["v"]["base"]
 
     part = pathlib.Path(a.out + ".partial.jsonl")
     rows = []
@@ -74,6 +87,8 @@ def main(argv=None) -> int:
         for pipe in sc.pipes:
             if (name, pipe.id) in done:
                 continue
+            if a.skip_base_fail and (name, pipe.id) in base_prev and base_prev[(name, pipe.id)]["status"] != "ok":
+                continue
             t = time.perf_counter()
             g = LayeredGraph(sc, pipe, (), local_lines=False, support_cost=True, reserved=(), grid=G0)
             row = {"scenario": name, "pipe_id": pipe.id, "size": pipe.nominal_size,
@@ -82,24 +97,31 @@ def main(argv=None) -> int:
                 _route(g, pipe, 1e9, 2048)
                 route_rg(g, pipe, np.zeros(len(g.pos)), 2048, 1.3)
                 warmed = True
-            t = time.perf_counter()
-            rb = _route(g, pipe, 1e9, a.budget)
-            v = {"status": _st(rb.status), "expanded": rb.expanded, "sec": round(time.perf_counter() - t, 4),
-                 "pre_sec": 0.0}
-            if v["status"] == "ok":
-                v["cost"] = rb.J
-                J, ok, _ = _verify_wp(sc, pipe, rb, std)
-                v.update(J_verifier=J, verifier_success=ok)
-            row["v"]["base"] = v
+            if (name, pipe.id) in base_prev:
+                row["v"]["base"] = dict(base_prev[(name, pipe.id)], reused=True)
+            else:
+                t = time.perf_counter()
+                rb = _route(g, pipe, 1e9, a.budget)
+                v = {"status": _st(rb.status), "expanded": rb.expanded, "sec": round(time.perf_counter() - t, 4),
+                     "pre_sec": 0.0}
+                if v["status"] == "ok":
+                    v["cost"] = rb.J
+                    J, ok, _ = _verify_wp(sc, pipe, rb, std)
+                    v.update(J_verifier=J, verifier_success=ok)
+                row["v"]["base"] = v
             t = time.perf_counter()
             dist, _ = relaxed_dist(g, pipe)
             pre_rg = time.perf_counter() - t
             s0 = g.start_state(pipe).node
             tabs = {"rg1.0": (dist, 1.0, pre_rg, None), "rg1.1": (dist, 1.1, pre_rg, None)}
-            for key, m in models.items():
-                t = time.perf_counter()
-                htab, stat = m.table(g, pipe, dist, s0)
-                tabs[key] = (htab, 1.0, pre_rg + (time.perf_counter() - t), stat)
+            cache = {}
+            for key, (m, w) in models.items():
+                if id(m) not in cache:          # 같은 망·디코딩의 표는 w 와 무관 — 1회만 만들고 시간도 그 1회 값을 각 변형에 붙인다
+                    t = time.perf_counter()
+                    htab, stat = m.table(g, pipe, dist, s0)
+                    cache[id(m)] = (htab, stat, time.perf_counter() - t)
+                htab, stat, tsec = cache[id(m)]
+                tabs[key] = (htab, w, pre_rg + tsec, stat)
             for key, (tab, w, pre, stat) in tabs.items():
                 t = time.perf_counter()
                 st, chain, ex, gen = route_rg(g, pipe, tab, a.budget, w)
