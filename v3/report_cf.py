@@ -53,6 +53,24 @@ def main(path: str) -> int:
         c2 = sj <= 1.01 and o5 == 0 and lost == 0
         print(f"  {k}: C-1 중앙 {med:.3f} · Σ {s_cf:.1f} vs rg {s_rg:.1f} → {'✅' if c1 else '❌'} | "
               f"C-2 ΣJ {sj:.4f} · +5% {o5} · 잃음 {lost} → {'✅' if c2 else '❌'} | 통과 {'✅' if c1 and c2 else '❌'}")
+    # 관문 C-3 (§33.4) — w1.1 변형 대 rg1.1
+    c3 = [k for k in keys if k.startswith("cf_") and k.endswith("_w1.1")]
+    if c3:
+        print("\n관문 C-3 (§33.4, rg1.1 대비)")
+        for k in c3:
+            p = [r for r in pair if r["v"][k]["status"] == "ok" and r["v"]["rg1.1"]["status"] == "ok"]
+            med = st.median(W(r["v"]["rg1.1"]) / W(r["v"][k]) for r in p)
+            s_cf = sum(W(r["v"][k]) for r in p)
+            s_rg = sum(W(r["v"]["rg1.1"]) for r in p)
+            q = [r for r in pair if r["v"][k]["status"] == "ok"]
+            sj = sum(r["v"][k]["J_verifier"] for r in q) / sum(r["v"]["base"]["J_verifier"] for r in q)
+            o5 = sum(r["v"][k]["J_verifier"] / r["v"]["base"]["J_verifier"] > 1.05 for r in q)
+            lost = len(pair) - len(q)
+            ok1 = med > 1.0 and s_cf < s_rg
+            ok2 = sj <= 1.01 and o5 == 0 and lost == 0
+            wins = sum(W(r["v"]["rg1.1"]) > W(r["v"][k]) for r in p)
+            print(f"  {k}: 중앙 {med:.3f} · Σ {s_cf:.1f} vs rg1.1 {s_rg:.1f} · 이긴 배관 {wins}/{len(p)} → {'✅' if ok1 else '❌'} | "
+                  f"C-2 ΣJ {sj:.4f} · +5% {o5} · 잃음 {lost} → {'✅' if ok2 else '❌'} | 통과 {'✅' if ok1 and ok2 else '❌'}")
     # 구간별 (기준 시간)
     print("\n기준 시간 구간별 Σ벽시계 (짝 = base·rg1.0·cf 전부 성공)")
     bins = [(0, 0.1), (0.1, 1), (1, 10), (10, 1e9)]
