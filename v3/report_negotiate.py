@@ -15,7 +15,7 @@ import pathlib
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
-from v3 import standard_guard                                            # noqa: E402
+from v3 import astar_rg as _sk_path, standard_guard                     # noqa: E402,F401  (astar_rg 가 skeleton 경로를 넣는다)
 
 from pipe_routing.generator import GeneratorConfig, generate            # noqa: E402
 from pipe_routing.multi import PlanResult, default_order                 # noqa: E402
