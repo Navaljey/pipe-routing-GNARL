@@ -314,7 +314,10 @@ def run_map(name, sc, budget, std, variants=("C", "A"), do_baseline=True):
                         "calls_per_pipe_max": max(per_pipe.values()),
                         "search_sec_sum": round(sum(c["search_sec"] for c in calls), 2),
                         "conflict_pipe_calls": conf_calls,
-                        "score": sc_out, "calls_detail": calls}
+                        "score": sc_out, "calls_detail": calls,
+                        # 3D 리포트용 (v3/report_negotiate.py) — 최종 경로·반복 1 실패 상태
+                        "final_waypoints": {pid: [[round(c, 3) for c in w] for w in wp] for pid, wp in final.items()},
+                        "iter1_status": {c["pipe"]: c["status"] for c in calls if c["it"] == 1}}
         print(f"  {name} [{variant}] 반복 {trace[-1]['it']} · 수렴 {not conf} · 호출 {len(calls)} · "
               f"필수 {sc_out['required_passed']}/{sc_out['required_pipes']} · J {sc_out['J_total']:.0f} · "
               f"라우팅 벽시계 {routing_wall:.0f} s · 전체 {wall:.0f} s", flush=True)
