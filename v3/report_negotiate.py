@@ -32,6 +32,7 @@ def main(argv=None) -> int:
     ap.add_argument("--manifest", required=True)
     ap.add_argument("--variant", default="C")
     ap.add_argument("--outdir", default="out/negotiate_viz")
+    ap.add_argument("--cdn", action="store_true", help="plotly.js 를 CDN 으로 (기본 = 파일에 포함 — 미리보기 창이 CDN 을 막는다)")
     standard_guard.add_argument(ap)
     a = ap.parse_args(argv)
     standard_guard.resolve(a.allow_public_standard, what="협상 3D 리포트")
@@ -58,7 +59,7 @@ def main(argv=None) -> int:
     stem = f"{a.scenario}_negotiate_{a.variant}"
     (d / f"{stem}_output.json").write_text(json.dumps(out, ensure_ascii=False, indent=1, default=float), encoding="utf-8")
     (d / f"{stem}_report.md").write_text(report_md(out), encoding="utf-8")
-    write_report_html(sc, out, d / f"{stem}_report.html")
+    write_report_html(sc, out, d / f"{stem}_report.html", offline=not a.cdn)
     g = out["global"]
     print(json.dumps({k: g.get(k) for k in ("total_pipes", "routed_count", "success_count", "required_pipes",
                                            "required_passed", "full_success", "J_total")}, ensure_ascii=False))
