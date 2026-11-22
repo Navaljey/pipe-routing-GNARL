@@ -72,6 +72,15 @@ class Negotiator:
         self.res = {pid: terminal_reservations(sc, exclude={pid}) for pid in self.order}
         self.rg = {}
         self.kgpm = {pid: pipe_spec(self.pipes[pid]).kg_per_m for pid in self.order}
+        self.toll = "self"     # §34.2 = 지나가는 배관(B) 무게 · "heavy" = §35.3 R (상대 A 무게 × 중력관 계수)
+
+    def toll_scale(self, aid, bid) -> float:
+        """B 가 A 근처를 지날 때 kg/mm 당 배수 (계수 pres + hist 는 따로 곱한다)."""
+        if self.toll == "self":
+            return self.kgpm[bid] / 1000.0
+        ga, gb = bool(self.pipes[aid].gravity_pipe), bool(self.pipes[bid].gravity_pipe)
+        g = 2.0 if (ga and not gb) else 0.5 if (gb and not ga) else 1.0      # `추정:` §35.3
+        return self.kgpm[aid] / 1000.0 * g
 
     def route(self, pid, paths, factor, clk: Clock, calls: list, it: int):
         """B = pid 를 가격 붙은 빈 그래프에서 라우팅. paths = 지금 다른 배관 경로, factor(A) = pres + hist."""
@@ -91,7 +100,9 @@ class Negotiator:
         sec = time.perf_counter() - t
         clk.add("search", sec)
         st = _st(st)
-        wp = _finish_chain(g, B, chain, ex, gen, 0.0).waypoints if st == "ok" else None
+        res = _finish_chain(g, B, chain, ex, gen, 0.0) if st == "ok" else None
+        wp = res.waypoints if res else None
+        self.last_J = res.J if res else None      # 가격이 붙은 비용 (가격 0 이면 라우터 비용 그대로)
         calls.append({"it": it, "pipe": pid, "status": st, "expanded": ex, "search_sec": round(sec, 4),
                       "wall": round(time.perf_counter() - t_call, 4), "priced_edges": n_priced})
         del g
@@ -100,12 +111,11 @@ class Negotiator:
     def _price(self, g, B, paths, factor) -> int:
         F = g.fixed
         tmpl = g._edge_template(F)
-        scale = self.kgpm[B.id] / 1000.0          # kg per mm × 배수
         n = 0
         for aid, w in paths.items():
             if aid == B.id or w is None:
                 continue
-            f = factor(aid)
+            f = factor(aid) * self.toll_scale(aid, B.id)
             if f <= 0:
                 continue
             op = self.pipes[aid]
@@ -119,7 +129,7 @@ class Negotiator:
                 a, b, L = e["a"][idx], e["b"][idx], e["L"][idx]
                 dp, dm = 2 * ax, 2 * ax + 1
                 ok = g.step[a, dp] == b
-                p = L[ok] * scale * f
+                p = L[ok] * f
                 g.scost[a[ok], dp] += p
                 g.scost[b[ok], dm] += p
                 n += int(ok.sum())
@@ -130,7 +140,7 @@ class Negotiator:
                 e = tmpl["diag"][d]
                 a, b, L = e["a"][idx], e["b"][idx], e["L"][idx]
                 ok = g.step[a, d] == b
-                g.scost[a[ok], d] += L[ok] * scale * f
+                g.scost[a[ok], d] += L[ok] * f
                 n += int(ok.sum())
         return n
 
@@ -293,7 +303,9 @@ def run_map(name, sc, budget, std, variants=("C", "A"), do_baseline=True):
     for variant in variants:
         clk, calls = Clock(clk1), list(calls1)
         t0 = time.perf_counter()
-        paths, conf, trace = negotiate(neg, paths0, set(failed0), variant, clk, calls, t0 - wall1, wall1)
+        neg.toll = "heavy" if variant == "R" else "self"      # R = §35.3 규칙 통행료 (충돌 배관만, C 와 같은 협상)
+        paths, conf, trace = negotiate(neg, paths0, set(failed0), "A" if variant == "A" else "C",
+                                       clk, calls, t0 - wall1, wall1)
         final, n_commit = commit(neg, paths, conf, clk, calls)
         t = time.perf_counter()
         sc_out = score(sc, final, std)
