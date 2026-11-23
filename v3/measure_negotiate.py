@@ -203,7 +203,12 @@ def variant_params(variant) -> dict:
     p = dict(pres0=PRES0, pres_mul=PRES_MUL, hist_add=HIST_ADD, alpha=0.0, s=0.0, support=False)
     if variant == "S":
         p.update(s=1.0, support=True)                         # `추정:` §37.2
+    if variant == "P":                                        # §37.3 탐색으로 고른 계수 (--params)
+        p.update(PARAMS_P)
     return p
+
+
+PARAMS_P: dict = {}
 
 
 def conflicts(neg, paths, clk: Clock, split=None):
@@ -453,6 +458,7 @@ def main(argv=None) -> int:
     ap.add_argument("--n", type=int, default=5)
     ap.add_argument("--variants", default="C,A")
     ap.add_argument("--no-baseline", action="store_true")
+    ap.add_argument("--params", help="변형 P 의 계수 JSON (§37.3), 예: '{\"pres0\":0.3,...}'")
     ap.add_argument("--budget", type=int, default=EXPAND_BUDGET)
     ap.add_argument("--out", required=True)
     ap.add_argument("--resume", action="store_true")
@@ -473,6 +479,8 @@ def main(argv=None) -> int:
     route_rg(g0, sc0.pipes[0], np.zeros(len(g0.pos)), 2048, W)
     del g0, sc0
     variants = tuple(v for v in a.variants.split(",") if v)
+    if a.params:
+        PARAMS_P.update(json.loads(a.params))
     for name, make, ref in scenarios(a):
         if name in done:
             continue
