@@ -36,7 +36,8 @@ from pipe_routing import layered                                         # noqa:
 from pipe_routing.generator import GeneratorConfig, generate            # noqa: E402
 from pipe_routing.layered import (EXPAND_BUDGET, G0, LayeredGraph,       # noqa: E402
                                   SupportMembers, clear_cache, terminal_reservations)
-from pipe_routing.multi import default_order, routes_conflict           # noqa: E402
+from pipe_routing.multi import EPS as _EPS, _pieces, default_order, routes_conflict  # noqa: E402
+from pipe_routing.verifier.geom import segment_segment_distance          # noqa: E402
 from pipe_routing.pipe_spec import pipe_spec                            # noqa: E402
 from pipe_routing.router_astar import _finish_chain                     # noqa: E402
 
@@ -73,11 +74,50 @@ class Negotiator:
         self.rg = {}
         self.kgpm = {pid: pipe_spec(self.pipes[pid]).kg_per_m for pid in self.order}
         self.toll = "self"     # §34.2 = 지나가는 배관(B) 무게 · "heavy" = §35.3 R (상대 A 무게 × 중력관 계수)
+        # §37: 계수 묶음 — 기본값 = C (§34.2) 와 비트 동일. alpha = 크기 지수, s = 서포트 통행료, support = 서포트 충돌 판정
+        self.p = dict(pres0=PRES0, pres_mul=PRES_MUL, hist_add=HIST_ADD, alpha=0.0, s=0.0, support=False)
+        self._solo_mem = {}
+        from pipe_routing.support_std import load_standard
+        self.std = load_standard()
+
+    def solo_members(self, aid, w):
+        """A 의 단독 서포트 부재 [(반폭, a, b)] — A 혼자 검증기에 넣었을 때 (§37.2, D128 과 같은 뜻). (A, 경로) 캐시."""
+        k = (aid, tuple(map(tuple, np.asarray(w, dtype=float).tolist())))
+        hit = self._solo_mem.get(k)
+        if hit is None:
+            from pipe_routing.layered import ANGLE_HALF
+            from pipe_routing.verifier.core import PipeRoute, verify
+            rep = verify(self.sc, [PipeRoute(aid, w)], std=self.std)["pipes"][aid]
+            hit = tuple((float(ANGLE_HALF[sp["section"]]), tuple(map(float, m["a"])), tuple(map(float, m["b"])))
+                        for sp in rep.supports for m in (sp.get("members") or []))
+            self._solo_mem[k] = hit
+        return hit
+
+    def member_hit(self, bid, wb, aid, wa) -> bool:
+        """B 의 중심선이 A 의 단독 부재와 r_B + 반폭 안 (D90 과 같은 문턱)."""
+        mem = self.solo_members(aid, wa)
+        if not mem:
+            return False
+        P = self.pipes[bid]
+        A1, B1, S1 = _pieces(P, wb)
+        H = np.array([m[0] for m in mem])
+        MA = np.array([m[1] for m in mem])
+        MB = np.array([m[2] for m in mem])
+        lo1, hi1 = np.minimum(A1, B1).min(0), np.maximum(A1, B1).max(0)
+        need = P.radius + H.max() + S1.max(initial=0)
+        keep = np.all((np.minimum(MA, MB) < hi1 + need) & (np.maximum(MA, MB) > lo1 - need), 1)
+        if not keep.any():
+            return False
+        d, _, _ = segment_segment_distance(A1[:, None], B1[:, None], MA[keep][None], MB[keep][None])
+        return bool(np.any(d - S1[:, None] < P.radius + H[keep][None] - _EPS))
 
     def toll_scale(self, aid, bid) -> float:
         """B 가 A 근처를 지날 때 kg/mm 당 배수 (계수 pres + hist 는 따로 곱한다)."""
         if self.toll == "self":
-            return self.kgpm[bid] / 1000.0
+            a = self.p["alpha"]
+            if a == 0.0:
+                return self.kgpm[bid] / 1000.0                     # C 와 비트 동일
+            return self.kgpm[bid] ** (1.0 - a) * self.kgpm[aid] ** a / 1000.0
         ga, gb = bool(self.pipes[aid].gravity_pipe), bool(self.pipes[bid].gravity_pipe)
         g = 2.0 if (ga and not gb) else 0.5 if (gb and not ga) else 1.0      # `추정:` §35.3
         return self.kgpm[aid] / 1000.0 * g
@@ -120,40 +160,70 @@ class Negotiator:
                 continue
             op = self.pipes[aid]
             c = g._item_contrib(F, _key(op, w), op, w)
-            for ax in range(3):
-                ent = c["axis"][ax]
-                if ent is None or not len(ent[0]):
-                    continue
-                idx = ent[0]
-                e = tmpl["axis"][ax]
-                a, b, L = e["a"][idx], e["b"][idx], e["L"][idx]
-                dp, dm = 2 * ax, 2 * ax + 1
-                ok = g.step[a, dp] == b
-                p = L[ok] * f
-                g.scost[a[ok], dp] += p
-                g.scost[b[ok], dm] += p
-                n += int(ok.sum())
-            for d, ent in c["diag"].items():
-                if ent is None or not len(ent[0]):
-                    continue
-                idx = ent[0]
-                e = tmpl["diag"][d]
-                a, b, L = e["a"][idx], e["b"][idx], e["L"][idx]
-                ok = g.step[a, d] == b
-                g.scost[a[ok], d] += L[ok] * f
-                n += int(ok.sum())
+            n += self._apply(g, tmpl, c, f)
+            if self.p["support"] and self.p["s"] > 0:
+                mem = self.solo_members(aid, w)
+                if mem:
+                    from pipe_routing.layered import MemberOp, MemberSet
+                    parts = tuple((MemberOp(aid, h), (a, b)) for h, a, b in mem)
+                    key = ("S", aid) + tuple((h,) + a + b for h, a, b in mem)
+                    cm = g._item_contrib(F, key, MemberSet(aid, parts), None)
+                    n += self._apply(g, tmpl, cm, f * self.p["s"])
+        return n
+
+    @staticmethod
+    def _apply(g, tmpl, c, f) -> int:
+        n = 0
+        for ax in range(3):
+            ent = c["axis"][ax]
+            if ent is None or not len(ent[0]):
+                continue
+            idx = ent[0]
+            e = tmpl["axis"][ax]
+            a, b, L = e["a"][idx], e["b"][idx], e["L"][idx]
+            dp, dm = 2 * ax, 2 * ax + 1
+            ok = g.step[a, dp] == b
+            p = L[ok] * f
+            g.scost[a[ok], dp] += p
+            g.scost[b[ok], dm] += p
+            n += int(ok.sum())
+        for d, ent in c["diag"].items():
+            if ent is None or not len(ent[0]):
+                continue
+            idx = ent[0]
+            e = tmpl["diag"][d]
+            a, b, L = e["a"][idx], e["b"][idx], e["L"][idx]
+            ok = g.step[a, d] == b
+            g.scost[a[ok], d] += L[ok] * f
+            n += int(ok.sum())
         return n
 
 
-def conflicts(neg, paths, clk: Clock):
+def variant_params(variant) -> dict:
+    p = dict(pres0=PRES0, pres_mul=PRES_MUL, hist_add=HIST_ADD, alpha=0.0, s=0.0, support=False)
+    if variant == "S":
+        p.update(s=1.0, support=True)                         # `추정:` §37.2
+    return p
+
+
+def conflicts(neg, paths, clk: Clock, split=None):
+    """충돌 쌍. neg.p["support"] 면 서포트 충돌 (§37.2: B 가 A 의 단독 부재를 막음) 도 더한다.
+    split 이 dict 면 {"geo": n, "support": n} 을 채운다 (같은 쌍이 둘 다면 geo 로 센다)."""
     t = time.perf_counter()
     ids = [pid for pid in neg.order if paths.get(pid) is not None]
-    out = []
+    out, n_geo, n_sup = [], 0, 0
     for i, a in enumerate(ids):
         for b in ids[i + 1:]:
             if routes_conflict(neg.pipes[a], paths[a], neg.pipes[b], paths[b]):
                 out.append((a, b))
+                n_geo += 1
+            elif neg.p["support"] and (neg.member_hit(b, paths[b], a, paths[a])
+                                       or neg.member_hit(a, paths[a], b, paths[b])):
+                out.append((a, b))
+                n_sup += 1
     clk.add("conflict", time.perf_counter() - t)
+    if split is not None:
+        split.update(geo=n_geo, support=n_sup)
     return out
 
 
@@ -174,11 +244,13 @@ def prune_item_cache(neg, paths):
 def negotiate(neg, paths0, failed, variant, clk, calls, t_start, wall1):
     paths = dict(paths0)
     hist = {}
-    pres = PRES0
+    pres = neg.p["pres0"]
     trace = []
-    conf = conflicts(neg, paths, clk)
+    sp = {}
+    conf = conflicts(neg, paths, clk, sp)
     trace.append({"it": 1, "rerouted": len(neg.order), "routing_wall": round(wall1, 2),
-                  "conflict_pairs": len(conf), "conflict_pipes": len({x for p in conf for x in p}),
+                  "conflict_pairs": len(conf), "conflict_split": dict(sp),
+                  "conflict_pipes": len({x for p in conf for x in p}),
                   "cum_wall": round(time.perf_counter() - t_start, 2)})
     it = 1
     while conf and it < MAX_IT:
@@ -193,13 +265,14 @@ def negotiate(neg, paths0, failed, variant, clk, calls, t_start, wall1):
                 paths[pid] = wp
             # 실패(가격 때문에 상한 소진 등)면 이전 경로를 그대로 둔다 — 배관을 떨어뜨려 "수렴" 하지 않게.
             # 영구 실패는 반복 1(가격 0)에서만 정한다.
-        conf = conflicts(neg, paths, clk)
+        conf = conflicts(neg, paths, clk, sp)
         for a, b in conf:
             k = frozenset((a, b))
-            hist[k] = hist.get(k, 0.0) + HIST_ADD
-        pres *= PRES_MUL
+            hist[k] = hist.get(k, 0.0) + neg.p["hist_add"]
+        pres *= neg.p["pres_mul"]
         trace.append({"it": it, "rerouted": len(todo), "routing_wall": round(sum(c["wall"] for c in calls[n0:]), 2),
-                      "conflict_pairs": len(conf), "conflict_pipes": len({x for p in conf for x in p}),
+                      "conflict_pairs": len(conf), "conflict_split": dict(sp),
+                      "conflict_pipes": len({x for p in conf for x in p}),
                       "cum_wall": round(time.perf_counter() - t_start, 2)})
         prune_item_cache(neg, paths)
         print(f"    [{variant}] it {it}: 다시 {len(todo)} · 충돌 쌍 {len(conf)} · 호출 누계 "
@@ -304,6 +377,7 @@ def run_map(name, sc, budget, std, variants=("C", "A"), do_baseline=True):
         clk, calls = Clock(clk1), list(calls1)
         t0 = time.perf_counter()
         neg.toll = "heavy" if variant == "R" else "self"      # R = §35.3 규칙 통행료 (충돌 배관만, C 와 같은 협상)
+        neg.p = variant_params(variant)                       # S = §37.2 서포트 인식 통행료
         paths, conf, trace = negotiate(neg, paths0, set(failed0), "A" if variant == "A" else "C",
                                        clk, calls, t0 - wall1, wall1)
         final, n_commit = commit(neg, paths, conf, clk, calls)
