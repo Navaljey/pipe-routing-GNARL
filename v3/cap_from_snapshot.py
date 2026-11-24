@@ -23,6 +23,20 @@ from v3 import guards, standard_guard                     # noqa: E402
 from v3 import measure_negotiate as mn                    # noqa: E402
 
 
+class _Unpickler(pickle.Unpickler):
+    """스냅숏은 measure_negotiate.py 를 스크립트로 돌려 남겨서 클래스가 `__main__` 에 묶여 있다 → mn 에서 찾는다."""
+
+    def find_class(self, module, name):
+        if module == "__main__":
+            return getattr(mn, name)
+        return super().find_class(module, name)
+
+
+def _load(path):
+    with open(path, "rb") as f:
+        return _Unpickler(f).load()
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--set", default="dense50")
@@ -40,14 +54,20 @@ def main(argv=None) -> int:
         raise SystemExit("서포트 표 해시 불일치 — 중단")
     a.e1_sets = ""
     out = []
+    part = pathlib.Path(a.out + ".partial.jsonl")
+    if part.exists():                                      # 끊겼다 다시 돌 때 — 이미 채점한 (시나리오, 반복) 은 건너뛴다
+        out = [json.loads(l) for l in part.read_text(encoding="utf-8").splitlines() if l.strip()]
+    done = {(r["scenario"], r["it"]) for r in out}
     for name, make, ref in mn.scenarios(a):
         snaps = sorted(pathlib.Path(a.ckpt_dir).glob(f"{name}.{a.variant}.it*.pkl"))
         if not snaps:
             continue
         sc = make()
         for sp in snaps:
-            st = pickle.loads(sp.read_bytes())
-            neg = mn.Negotiator(sc, mn.EXPAND_BUDGET)
+            st = _load(sp)
+            if (name, st["neg"]["state"]["it"]) in done:
+                continue
+            neg =mn.Negotiator(sc, mn.EXPAND_BUDGET)
             neg.toll = "self"
             neg.p = mn.variant_params(a.variant)
             s = st["neg"]["state"]
@@ -66,6 +86,8 @@ def main(argv=None) -> int:
             print(f"  {name} it {s['it']:2d}: 필수 {score['required_passed']}/{score['required_pipes']} · "
                   f"J {score['J_total']:.0f} · 벽시계(협상) {row['cum_wall_at_it']:.0f} s + 확정 {t_commit:.0f} s", flush=True)
             out.append(row)
+            with open(a.out + ".partial.jsonl", "a", encoding="utf-8") as f:   # 2 시간 제한 대비 — 행마다 남긴다
+                f.write(json.dumps(row, ensure_ascii=False, default=float) + "\n")
             del neg
     pathlib.Path(a.out).write_text(json.dumps({"support_standard": std_info, "rows": out}, ensure_ascii=False,
                                               indent=1, default=float), encoding="utf-8")
