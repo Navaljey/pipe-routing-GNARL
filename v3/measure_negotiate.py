@@ -284,6 +284,7 @@ def negotiate(neg, paths0, failed, variant, clk, calls, t_start, wall1, ck=None,
     if resume is not None:
         paths, hist, pres, conf, trace, it = (resume["paths"], resume["hist"], resume["pres"], resume["conf"],
                                               resume["trace"], resume["it"])
+        sp = {}                                   # conflicts() 가 매번 덮어쓴다 — 상태 아님
         print(f"    [{variant}] 재개: 반복 {it} 다음부터", flush=True)
     else:
         paths = dict(paths0)
