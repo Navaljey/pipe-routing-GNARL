@@ -216,7 +216,14 @@ def variant_params(variant) -> dict:
         p.update(s=1.0, support=True)                         # `추정:` §37.2
     if variant == "P":                                        # §37.3 탐색으로 고른 계수 (--params)
         p.update(PARAMS_P)
+    if variant == "T":                                        # §37.6 채택 (2026-11-24 소유자) = S + r06 계수
+        p.update(PARAMS_ADOPTED)
     return p
+
+
+# §37.6 채택 통행료 = 변형 "T" ("A" 는 전원 다시 깔기 변형이라 피한다) (소유자 2026-11-24 "통행료는 여기서 마친다"): 서포트 인식 + 계수 탐색 r06.
+# 검증 40100000~04: 필수 통과 122 (C 117 · S 122), 통과 집합 = S, J r06/S 0.9944.
+PARAMS_ADOPTED = dict(pres0=0.5112, pres_mul=1.2239, hist_add=0.0087, alpha=0.9669, s=2.2392, support=True)
 
 
 PARAMS_P: dict = {}
