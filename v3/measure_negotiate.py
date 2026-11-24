@@ -5,6 +5,9 @@ PathFinder 형 협상: 배관마다 빈 맵 그래프(+ 다른 배관 단자 예
 충돌이 0 이 되거나 반복 15 에서 멈추고, 남은 충돌 배관만 단단한 장애물로 확정(D50 순서) → 검증기 1회 채점.
 기준선 = skeleton `pipeline.run` (순차 첫 해) 같은 맵·같은 프로세스.
 
+⚠️ W = 1.1 적용 방식 (설계안 §38.2): `f6c4836` 이전 = 1.1·max(D41 h, rg) (소스 패치판) · 이후 D126 skeleton 위 =
+max(D41 h, 1.1·rg) (`route_graph(h_lower)`). 출력 `router` 필드에 어느 쪽인지 남는다. 판정 영향 없음 (skeleton 2026-11-24 수용).
+
 변형 (반복 2~): A = 경로 있는 전 배관 · C = 충돌 쌍에 든 배관만. 반복 1(가격 0 = Σ 단독)은 공유.
 
     PIPE_SUPPORT_STANDARD=... python3 v3/measure_negotiate.py --seed0 40100000 --n 1 --out out/negotiate_v1.json --resume
@@ -448,6 +451,21 @@ def scenarios(a):
     import hashlib
     import tempfile
     from pipe_routing.scenario import save
+    if a.set == "e1":                                         # §40: E1 동결 시나리오 (평가 — 측정만, 튜닝 금지)
+        from pipe_routing.scenario import load
+        from v3.astar_rg import _SK
+        man = json.loads(pathlib.Path(a.manifest).read_text(encoding="utf-8"))   # s1_8_scenario_sha256.json
+        want = set(a.e1_sets.split(",")) if a.e1_sets else set(man)
+        for st, files in man.items():
+            if st not in want:
+                continue
+            for rel, sha in files.items():
+                f = _SK / rel
+                h = hashlib.sha256(f.read_bytes()).hexdigest()
+                if h != sha:
+                    raise SystemExit(f"{rel}: E1 sha256 불일치 — 중단 ({h[:12]} ≠ {sha[:12]})")
+                yield f"{st}/{f.stem}", (lambda f=f: load(f)), {"set": st, "file": rel, "sha256": sha}
+        return
     man = json.loads(pathlib.Path(a.manifest).read_text(encoding="utf-8"))
     prefix, n_pipes = OPT_SETS[a.set]
     rows = man["sets"][a.set][:a.n]
@@ -469,7 +487,8 @@ def scenarios(a):
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description="3단계 라우팅 호출 예산 (§34)")
-    ap.add_argument("--set", choices=("mine", "dense30", "dense50"), default="mine")
+    ap.add_argument("--set", choices=("mine", "dense30", "dense50", "e1"), default="mine")
+    ap.add_argument("--e1-sets", default="", help="--set e1 에서 돌릴 세트 (쉼표, 기본 = 전부)")
     ap.add_argument("--manifest", help="섹션 3) opt_stage1_valsets.json (--set dense30·dense50)")
     ap.add_argument("--seed0", type=int, default=40_100_000)
     ap.add_argument("--n", type=int, default=5)
@@ -513,7 +532,8 @@ def main(argv=None) -> int:
         rows.append(row)
         del sc
     pathlib.Path(a.out).write_text(json.dumps({"support_standard": std_info, "budget": a.budget, "w": W,
-                                               "router": "컴파일 A* (skeleton _search_generic 패치) + max(h, rg) × 1.1, "
+                                               "router": ("D126 route_graph(extra_cost, h_lower=1.1·rg) → h = max(D41 h, 1.1·rg), " if HAVE_D126 else
+                                                          "컴파일 A* (skeleton _search_generic 패치) → h = 1.1·max(D41 h, rg), ") + 
                                                          "rg = 배관별 1회 (빈 그래프 + 단자 예약) 반복 내내 재사용",
                                                "machine": machine_info(), "set": a.set, "variants": list(variants),
                                                "params": {"max_it": MAX_IT, "pres0": PRES0, "pres_mul": PRES_MUL,
