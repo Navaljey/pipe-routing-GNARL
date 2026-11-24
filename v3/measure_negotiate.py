@@ -29,7 +29,7 @@ import numpy as np
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 from v3 import guards, standard_guard                                    # noqa: E402
-from v3.astar_rg import route_rg                                         # noqa: E402
+from v3.astar_rg import HAVE_D126, route_api, route_rg                   # noqa: E402
 from v3.measure_controls import relaxed_dist                             # noqa: E402
 
 from pipe_routing import layered                                         # noqa: E402
@@ -53,6 +53,17 @@ def rss_gb() -> float:
 
 def _st(s):
     return "budget_exhausted" if s == "timeout" else s
+
+
+def search(g, P, htab, budget, extra=None):
+    """rg × W 탐색 1회 → (상태, RouteResult 또는 None, 확장 수). D126 이후 = 공식 route_graph, 이전 = 소스 패치판."""
+    if HAVE_D126:
+        r = route_api(g, P, htab, budget, W, extra)
+        st = _st(r.status)
+        return st, (r if st == "ok" else None), r.expanded
+    st, chain, ex, gen = route_rg(g, P, htab, budget, W)
+    st = _st(st)
+    return st, (_finish_chain(g, P, chain, ex, gen, 0.0) if st == "ok" else None), ex
 
 
 def _key(op, w):
@@ -133,22 +144,22 @@ class Negotiator:
             self.rg[pid], _ = relaxed_dist(g, B)
             clk.add("rg", time.perf_counter() - t)
         t = time.perf_counter()
-        n_priced = self._price(g, B, paths, factor)
+        # D126: 가격은 별도 배열 (extra_cost) 에 — 지도 배열은 읽기 전용. D126 이전 skeleton 은 예전처럼 제자리.
+        tgt = np.zeros(g.scost.shape) if HAVE_D126 else g.scost
+        n_priced = self._price(g, B, paths, factor, tgt)
         clk.add("price", time.perf_counter() - t)
         t = time.perf_counter()
-        st, chain, ex, gen = route_rg(g, B, self.rg[pid], self.budget, W)
+        st, res, ex = search(g, B, self.rg[pid], self.budget, tgt if (HAVE_D126 and n_priced) else None)
         sec = time.perf_counter() - t
         clk.add("search", sec)
-        st = _st(st)
-        res = _finish_chain(g, B, chain, ex, gen, 0.0) if st == "ok" else None
         wp = res.waypoints if res else None
-        self.last_J = res.J if res else None      # 가격이 붙은 비용 (가격 0 이면 라우터 비용 그대로)
+        self.last_J = res.J if res else None      # 가격 0 이면 라우터 비용 그대로 (D126 판은 가격과 무관하게 지도 비용)
         calls.append({"it": it, "pipe": pid, "status": st, "expanded": ex, "search_sec": round(sec, 4),
                       "wall": round(time.perf_counter() - t_call, 4), "priced_edges": n_priced})
         del g
         return st, wp
 
-    def _price(self, g, B, paths, factor) -> int:
+    def _price(self, g, B, paths, factor, tgt) -> int:
         F = g.fixed
         tmpl = g._edge_template(F)
         n = 0
@@ -160,7 +171,7 @@ class Negotiator:
                 continue
             op = self.pipes[aid]
             c = g._item_contrib(F, _key(op, w), op, w)
-            n += self._apply(g, tmpl, c, f)
+            n += self._apply(g, tmpl, c, f, tgt)
             if self.p["support"] and self.p["s"] > 0:
                 mem = self.solo_members(aid, w)
                 if mem:
@@ -168,11 +179,11 @@ class Negotiator:
                     parts = tuple((MemberOp(aid, h), (a, b)) for h, a, b in mem)
                     key = ("S", aid) + tuple((h,) + a + b for h, a, b in mem)
                     cm = g._item_contrib(F, key, MemberSet(aid, parts), None)
-                    n += self._apply(g, tmpl, cm, f * self.p["s"])
+                    n += self._apply(g, tmpl, cm, f * self.p["s"], tgt)
         return n
 
     @staticmethod
-    def _apply(g, tmpl, c, f) -> int:
+    def _apply(g, tmpl, c, f, tgt) -> int:
         n = 0
         for ax in range(3):
             ent = c["axis"][ax]
@@ -184,8 +195,8 @@ class Negotiator:
             dp, dm = 2 * ax, 2 * ax + 1
             ok = g.step[a, dp] == b
             p = L[ok] * f
-            g.scost[a[ok], dp] += p
-            g.scost[b[ok], dm] += p
+            tgt[a[ok], dp] += p
+            tgt[b[ok], dm] += p
             n += int(ok.sum())
         for d, ent in c["diag"].items():
             if ent is None or not len(ent[0]):
@@ -194,7 +205,7 @@ class Negotiator:
             e = tmpl["diag"][d]
             a, b, L = e["a"][idx], e["b"][idx], e["L"][idx]
             ok = g.step[a, d] == b
-            g.scost[a[ok], d] += L[ok] * f
+            tgt[a[ok], d] += L[ok] * f
             n += int(ok.sum())
         return n
 
@@ -301,12 +312,11 @@ def commit(neg, paths, conf, clk, calls):
                          members=members(neg.sc, placed))
         assert len(g.pos) == len(neg.rg[pid]), "확정 그래프 노드가 다르다"
         t = time.perf_counter()
-        st, chain, ex, gen = route_rg(g, P, neg.rg[pid], neg.budget, W)
-        st = _st(st)
+        st, res, ex = search(g, P, neg.rg[pid], neg.budget)
         calls.append({"it": "commit", "pipe": pid, "status": st, "expanded": ex,
                       "search_sec": round(time.perf_counter() - t, 4)})
         if st == "ok":
-            final[pid] = _finish_chain(g, P, chain, ex, gen, 0.0).waypoints
+            final[pid] = res.waypoints
         del g
     clk.add("commit", time.perf_counter() - t0)
     return final, len(bad)
@@ -476,7 +486,7 @@ def main(argv=None) -> int:
     done = {r["scenario"] for r in rows}
     sc0 = generate(GeneratorConfig(seed=40_100_000, n_pipes=2), "warm")    # numba 데우기
     g0 = LayeredGraph(sc0, sc0.pipes[0], (), local_lines=False, support_cost=True, grid=G0)
-    route_rg(g0, sc0.pipes[0], np.zeros(len(g0.pos)), 2048, W)
+    search(g0, sc0.pipes[0], np.zeros(len(g0.pos)), 2048)
     del g0, sc0
     variants = tuple(v for v in a.variants.split(",") if v)
     if a.params:

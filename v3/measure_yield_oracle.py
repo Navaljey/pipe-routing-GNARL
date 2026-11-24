@@ -23,14 +23,12 @@ import time
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 from v3 import guards, standard_guard                                    # noqa: E402
-from v3.astar_rg import route_rg                                         # noqa: E402
-from v3.measure_negotiate import (GEN_KW, W, Clock, Negotiator, _st,     # noqa: E402
-                                  commit, conflicts, rss_gb, score)
+from v3.measure_negotiate import (GEN_KW, Clock, Negotiator,            # noqa: E402
+                                  commit, conflicts, rss_gb, score, search)
 
 from pipe_routing.generator import GeneratorConfig, generate            # noqa: E402
 from pipe_routing.layered import (EXPAND_BUDGET, G0, LayeredGraph,       # noqa: E402
                                   SupportMembers, clear_cache, terminal_reservations)
-from pipe_routing.router_astar import _finish_chain                     # noqa: E402
 
 MAX_ENUM = 4
 
@@ -70,11 +68,9 @@ def hard_route(neg, pid, paths, members, clk, calls, tag):
     clk.add("graph", time.perf_counter() - t)
     assert len(g.pos) == len(neg.rg[pid]), "단단한 그래프 노드가 다르다"
     t = time.perf_counter()
-    st, chain, ex, gen = route_rg(g, P, neg.rg[pid], neg.budget, W)
+    st, res, ex = search(g, P, neg.rg[pid], neg.budget)
     sec = time.perf_counter() - t
     clk.add("search", sec)
-    st = _st(st)
-    res = _finish_chain(g, P, chain, ex, gen, 0.0) if st == "ok" else None
     calls.append({"it": tag, "pipe": pid, "status": st, "expanded": ex, "search_sec": round(sec, 4)})
     del g
     return st, (res.waypoints if res else None), (res.J if res else None)

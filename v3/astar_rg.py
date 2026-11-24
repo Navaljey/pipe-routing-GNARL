@@ -37,29 +37,37 @@ def _patched(fn, edits: list[tuple[str, str]], new_name: str):
     return ns[new_name], ns
 
 
-_HLINE = "f = ng + (dist * kgmm + bends * e45)"
-_src0 = textwrap.dedent(inspect.getsource(_af._search_generic.py_func))
-_IND = next(l for l in _src0.splitlines() if l.strip() == _HLINE)[:-len(_HLINE)]   # 들여쓰기를 소스에서 읽는다
-_search_rg_py, _ = _patched(_af._search_generic, [
-    ("def _search_generic(T, C, G, ctr, fctr, H, S, K, open_head, closed_head, arc):",
-     "def _search_generic(T, C, G, ctr, fctr, H, S, K, open_head, closed_head, arc, htab, wgt):"),
-    (_IND + _HLINE + "\n",
-     _IND + "hh = dist * kgmm + bends * e45\n"
-     + _IND + "hr = htab[nflat]\n"
-     + _IND + "if hr > hh:\n"
-     + _IND + "    hh = hr\n"
-     + _IND + "f = ng + wgt * hh\n"),
-], "_search_rg")
-_search_rg = _af.njit(cache=False)(_search_rg_py)
+def _build_patch():
+    _HLINE = "f = ng + (dist * kgmm + bends * e45)"
+    _src0 = textwrap.dedent(inspect.getsource(_af._search_generic.py_func))
+    _IND = next(l for l in _src0.splitlines() if l.strip() == _HLINE)[:-len(_HLINE)]   # 들여쓰기를 소스에서 읽는다
+    _search_rg_py, _ = _patched(_af._search_generic, [
+        ("def _search_generic(T, C, G, ctr, fctr, H, S, K, open_head, closed_head, arc):",
+         "def _search_generic(T, C, G, ctr, fctr, H, S, K, open_head, closed_head, arc, htab, wgt):"),
+        (_IND + _HLINE + "\n",
+         _IND + "hh = dist * kgmm + bends * e45\n"
+         + _IND + "hr = htab[nflat]\n"
+         + _IND + "if hr > hh:\n"
+         + _IND + "    hh = hr\n"
+         + _IND + "f = ng + wgt * hh\n"),
+    ], "_search_rg")
+    _search_rg = _af.njit(cache=False)(_search_rg_py)
 
-_route_py, _ns = _patched(_af.astar_route_generic, [
-    ("def astar_route_generic(space, pipe, time_limit, h_start, expand_limit=None):",
-     "def astar_route_generic(space, pipe, time_limit, h_start, expand_limit=None, htab=None, wgt=1.0):"),
-    ("code = _search_generic(T, C, G, ctr, fctr, H, S, K, open_head, closed_head, arc)",
-     "code = _search_rg(T, C, G, ctr, fctr, H, S, K, open_head, closed_head, arc, htab, float(wgt))"),
-], "astar_route_rg")
-_ns["_search_rg"] = _search_rg
-astar_route_rg = _route_py
+    _route_py, _ns = _patched(_af.astar_route_generic, [
+        ("def astar_route_generic(space, pipe, time_limit, h_start, expand_limit=None):",
+         "def astar_route_generic(space, pipe, time_limit, h_start, expand_limit=None, htab=None, wgt=1.0):"),
+        ("code = _search_generic(T, C, G, ctr, fctr, H, S, K, open_head, closed_head, arc)",
+         "code = _search_rg(T, C, G, ctr, fctr, H, S, K, open_head, closed_head, arc, htab, float(wgt))"),
+    ], "astar_route_rg")
+    _ns["_search_rg"] = _search_rg
+    astar_route_rg = _route_py
+    return astar_route_rg
+
+
+# D126 (skeleton PR #52) 이후에는 소스 패치 대신 공식 인자 `route_graph(extra_cost, h_lower)` 를 쓴다 (route_api).
+# 패치는 D126 이전 skeleton 에서만 만든다 — 이후 소스에서는 패치 지점이 바뀌어 만들지 않는다.
+HAVE_D126 = hasattr(__import__('pipe_routing.layered', fromlist=['x']), 'route_graph')
+astar_route_rg = None if HAVE_D126 else _build_patch()
 
 
 def route_rg(g, pipe, htab, expand_limit, w=1.0):
@@ -71,4 +79,20 @@ def route_rg(g, pipe, htab, expand_limit, w=1.0):
     h = heuristic_factory(g, pipe)
     s0 = g.start_state(pipe)
     h0 = w * max(h(s0), float(htab[s0.node]))
+    if astar_route_rg is None:
+        raise RuntimeError("D126 이후 skeleton — route_rg(소스 패치) 대신 route_api 를 쓴다")
     return astar_route_rg(g, pipe, 1e9, h0, expand_limit, np.ascontiguousarray(htab, dtype=np.float64), w)
+
+
+_BIG = 1e30   # D126 h_lower 는 유한해야 한다 — rg = inf (목표에 못 가는 노드) 는 아주 큰 유한값으로
+
+
+def route_api(g, pipe, htab, expand_limit, w=1.0, extra_cost=None):
+    """D126 공식 호출 — skeleton `layered.route_graph(extra_cost, h_lower)`. → RouteResult (J 는 지도 비용, 가격 제외).
+
+    h_lower = w · rg  →  h = max(D41 h, w · rg).  ⚠️ 소스 패치판 (route_rg) 의 h = w · max(D41 h, rg) 와 **같지 않다**
+    (D41 h > rg 인 상태에서 다르다 — 설계안 §38). extra_cost = 협상 가격 (N, 18) ≥ 0, 지도는 바꾸지 않는다."""
+    import numpy as np
+    from pipe_routing.layered import route_graph
+    hl = np.where(np.isfinite(htab), np.asarray(htab, dtype=np.float64) * w, _BIG)
+    return route_graph(g, pipe, 1e9, expand_limit, extra_cost=extra_cost, h_lower=hl)
