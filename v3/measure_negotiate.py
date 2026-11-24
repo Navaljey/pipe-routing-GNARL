@@ -91,6 +91,8 @@ class Negotiator:
         # §37: 계수 묶음 — 기본값 = C (§34.2) 와 비트 동일. alpha = 크기 지수, s = 서포트 통행료, support = 서포트 충돌 판정
         self.p = dict(pres0=PRES0, pres_mul=PRES_MUL, hist_add=HIST_ADD, alpha=0.0, s=0.0, support=False)
         self._solo_mem = {}
+        self.max_it = MAX_IT              # §40.5 결정적 예산 (D97): 반복 상한 · 협상 전체 확장 누계 상한 (반복 경계에서 판정)
+        self.exp_cap = float("inf")
         from pipe_routing.support_std import load_standard
         self.std = load_standard()
 
@@ -267,19 +269,38 @@ def prune_item_cache(neg, paths):
     return n
 
 
-def negotiate(neg, paths0, failed, variant, clk, calls, t_start, wall1):
-    paths = dict(paths0)
-    hist = {}
-    pres = neg.p["pres0"]
-    trace = []
-    sp = {}
-    conf = conflicts(neg, paths, clk, sp)
-    trace.append({"it": 1, "rerouted": len(neg.order), "routing_wall": round(wall1, 2),
-                  "conflict_pairs": len(conf), "conflict_split": dict(sp),
-                  "conflict_pipes": len({x for p in conf for x in p}),
-                  "cum_wall": round(time.perf_counter() - t_start, 2)})
-    it = 1
-    while conf and it < MAX_IT:
+def _expanded(calls) -> int:
+    return int(sum(c.get("expanded", 0) for c in calls))
+
+
+def _iter_log(tr, calls):
+    """반복별 진행 한 줄 (JSON) — 시나리오가 중간에 끊겨도 반복별 벽시계·확장 누계가 로그에 남는다 (§40.5). 결과에 영향 없음."""
+    print("ITER " + json.dumps({"it": tr["it"], "cum_wall": tr["cum_wall"], "conflict_pairs": tr["conflict_pairs"],
+                                "calls": len(calls), "expanded_cum": int(sum(c.get("expanded", 0) for c in calls))}), flush=True)
+
+
+def negotiate(neg, paths0, failed, variant, clk, calls, t_start, wall1, ck=None, resume=None):
+    """ck = 반복별 체크포인트 저장 함수 (§40.5), resume = 저장된 협상 상태 — 있으면 그 반복 다음부터 잇는다."""
+    if resume is not None:
+        paths, hist, pres, conf, trace, it = (resume["paths"], resume["hist"], resume["pres"], resume["conf"],
+                                              resume["trace"], resume["it"])
+        print(f"    [{variant}] 재개: 반복 {it} 다음부터", flush=True)
+    else:
+        paths = dict(paths0)
+        hist = {}
+        pres = neg.p["pres0"]
+        trace = []
+        sp = {}
+        conf = conflicts(neg, paths, clk, sp)
+        trace.append({"it": 1, "rerouted": len(neg.order), "routing_wall": round(wall1, 2),
+                      "conflict_pairs": len(conf), "conflict_split": dict(sp),
+                      "conflict_pipes": len({x for p in conf for x in p}),
+                      "cum_wall": round(time.perf_counter() - t_start, 2)})
+        _iter_log(trace[-1], calls)
+        it = 1
+        if ck:
+            ck(dict(paths=paths, hist=hist, pres=pres, conf=conf, trace=trace, it=it), calls, clk)
+    while conf and it < neg.max_it and _expanded(calls) < neg.exp_cap:     # 상한 (§40.5) — 반복 경계에서만 본다 (결정적)
         it += 1
         bad = {x for pair in conf for x in pair}
         todo = [pid for pid in neg.order if pid not in failed and (variant == "A" or pid in bad)]
@@ -300,6 +321,9 @@ def negotiate(neg, paths0, failed, variant, clk, calls, t_start, wall1):
                       "conflict_pairs": len(conf), "conflict_split": dict(sp),
                       "conflict_pipes": len({x for p in conf for x in p}),
                       "cum_wall": round(time.perf_counter() - t_start, 2)})
+        _iter_log(trace[-1], calls)
+        if ck:
+            ck(dict(paths=paths, hist=hist, pres=pres, conf=conf, trace=trace, it=it), calls, clk)
         prune_item_cache(neg, paths)
         print(f"    [{variant}] it {it}: 다시 {len(todo)} · 충돌 쌍 {len(conf)} · 호출 누계 "
               f"{sum(1 for c in calls)} · rss {rss_gb():.1f} GB", flush=True)
@@ -320,6 +344,10 @@ def commit(neg, paths, conf, clk, calls):
         reserved = terminal_reservations(neg.sc, exclude={pid} | {q for q in final})
         g = LayeredGraph(neg.sc, P, placed, local_lines=False, support_cost=True, reserved=reserved, grid=G0,
                          members=members(neg.sc, placed))
+        if pid not in neg.rg:                     # 재개 실행 (§40.5): rg 는 결정적 메모 — 협상 때와 같은 빈 그래프로 다시 계산
+            g_e = LayeredGraph(neg.sc, P, (), local_lines=False, support_cost=True, reserved=neg.res[pid], grid=G0)
+            neg.rg[pid], _ = relaxed_dist(g_e, P)
+            del g_e
         assert len(g.pos) == len(neg.rg[pid]), "확정 그래프 노드가 다르다"
         t = time.perf_counter()
         st, res, ex = search(g, P, neg.rg[pid], neg.budget)
@@ -375,9 +403,54 @@ def machine_info() -> dict:
             "note": "단일 프로세스·단일 스레드 (D122 시나리오당 2 코어 중 1)"}
 
 
-def run_map(name, sc, budget, std, variants=("C", "A"), do_baseline=True):
+class Checkpoint:
+    """시나리오 중간 체크포인트 (§40.5, skeleton D138 ② 요청). 반복 1 끝 · 협상 반복마다 · 확정 직전에 저장.
+    저장 = 판정에 쓰이는 상태 전부 (경로 · 이력 · 가격 · 충돌 · 호출 기록 · 시계 · 경과 벽시계).
+    Negotiator 의 rg · 단독 부재 · 항목 캐시는 결정적 메모라 다시 계산한다 → 판정 지표가 끊지 않은 실행과 같다."""
+
+    def __init__(self, path):
+        self.path = pathlib.Path(path) if path else None
+
+    def load(self):
+        if self.path and self.path.exists():
+            import pickle
+            return pickle.loads(self.path.read_bytes())
+        return None
+
+    def save(self, state):
+        if not self.path:
+            return
+        import os
+        import pickle
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = self.path.with_suffix(".tmp")
+        tmp.write_bytes(pickle.dumps(state, protocol=4))
+        os.replace(tmp, self.path)
+
+    def done(self):
+        if self.path and self.path.exists():
+            self.path.unlink()
+
+
+def _maybe_stop(where):
+    """시험용: V3_STOP_AT=<where> 이면 체크포인트 저장 직후 프로세스를 끝낸다 (끊김 재현)."""
+    import os
+    if os.environ.get("V3_STOP_AT") == where:
+        print(f"    V3_STOP_AT={where} — 시험용 중단", flush=True)
+        os._exit(3)
+
+
+def run_map(name, sc, budget, std, variants=("C", "A"), do_baseline=True, ckpt_path=None, caps=None):
+    caps = caps or {}
+    import os
+    keep_iters = bool(os.environ.get("V3_KEEP_ITERS"))
     row = {"scenario": name, "n_pipes": len(sc.pipes)}
-    if do_baseline:
+    cp = Checkpoint(ckpt_path)
+    saved = cp.load()
+    if saved is not None:
+        assert saved["scenario"] == name and saved["variants"] == list(variants), "체크포인트가 다른 실행 것이다"
+        print(f"  {name} 체크포인트에서 재개 ({saved['stage']})", flush=True)
+    if do_baseline and saved is None:
         row["baseline"] = baseline(sc)
         print(f"  {name} 기준선: 필수 {row['baseline']['required_passed']}/{row['baseline']['required_pipes']} · "
               f"J {row['baseline']['J_total']:.0f} · {row['baseline']['wall_sec']:.0f} s", flush=True)
@@ -385,26 +458,56 @@ def run_map(name, sc, budget, std, variants=("C", "A"), do_baseline=True):
         gc.collect()
 
     neg = Negotiator(sc, budget)
-    clk1, calls1 = Clock(), []
-    t0 = time.perf_counter()
-    paths0, failed0 = {}, set()
-    for pid in neg.order:                       # 반복 1 = 가격 0 (단자 예약을 지킨 단독, OPT.Dec6 와 같은 정의)
-        st, wp = neg.route(pid, {}, lambda a: 0.0, clk1, calls1, 1)
-        paths0[pid] = wp
-        if st != "ok":
-            failed0.add(pid)
-    wall1 = time.perf_counter() - t0
-    row["iter1"] = {"wall_sec": round(wall1, 2), "clock": {k: round(v, 2) for k, v in clk1.items()},
-                    "failed": {c["pipe"]: c["status"] for c in calls1 if c["status"] != "ok"}}
-    print(f"  {name} 반복 1: {wall1:.0f} s · 실패 {len(failed0)}", flush=True)
+    neg.max_it = caps.get("max_it", MAX_IT)
+    neg.exp_cap = caps.get("exp_cap", float("inf"))
+    if saved is not None:
+        row.update(saved["row"])
+        clk1, calls1, paths0, failed0, wall1 = (saved["clk1"], saved["calls1"], saved["paths0"], saved["failed0"],
+                                                saved["wall1"])
+    else:
+        clk1, calls1 = Clock(), []
+        t0 = time.perf_counter()
+        paths0, failed0 = {}, set()
+        for pid in neg.order:                       # 반복 1 = 가격 0 (단자 예약을 지킨 단독, OPT.Dec6 와 같은 정의)
+            st, wp = neg.route(pid, {}, lambda a: 0.0, clk1, calls1, 1)
+            paths0[pid] = wp
+            if st != "ok":
+                failed0.add(pid)
+        wall1 = time.perf_counter() - t0
+        row["iter1"] = {"wall_sec": round(wall1, 2), "clock": {k: round(v, 2) for k, v in clk1.items()},
+                        "failed": {c["pipe"]: c["status"] for c in calls1 if c["status"] != "ok"}}
+        print(f"  {name} 반복 1: {wall1:.0f} s · 실패 {len(failed0)}", flush=True)
+    base_state = dict(scenario=name, variants=list(variants), clk1=clk1, calls1=calls1, paths0=paths0,
+                      failed0=failed0, wall1=wall1)
 
     for variant in variants:
-        clk, calls = Clock(clk1), list(calls1)
-        t0 = time.perf_counter()
+        if variant in row:                                    # 체크포인트 이전에 끝난 변형
+            continue
         neg.toll = "heavy" if variant == "R" else "self"      # R = §35.3 규칙 통행료 (충돌 배관만, C 와 같은 협상)
         neg.p = variant_params(variant)                       # S = §37.2 서포트 인식 통행료
+        vs = saved.get("neg") if (saved is not None and saved.get("variant") == variant) else None
+        if vs is not None:
+            clk, calls = vs["clk"], vs["calls"]
+            elapsed = vs["state"]["trace"][-1]["cum_wall"] - wall1     # 이 변형에서 반복 1 이후 지난 벽시계
+        else:
+            clk, calls = Clock(clk1), list(calls1)
+            elapsed = 0.0
+        t0 = time.perf_counter() - elapsed
+
+        def ck(state, calls_now, clk_now, variant=variant):
+            st_ = dict(base_state, stage=f"{variant} it {state['it']}", row=row, variant=variant,
+                       neg=dict(state=state, calls=calls_now, clk=clk_now))
+            cp.save(st_)
+            if keep_iters and cp.path:                        # §40.5: 반복별 스냅숏 — 상한 k 의 결과 = 스냅숏 k 에서 확정·채점
+                Checkpoint(cp.path.with_name(cp.path.stem + f".{variant}.it{state['it']:02d}.pkl")).save(st_)
+            _maybe_stop(f"{variant}:{state['it']}")
+
+        if saved is None and variant == variants[0]:
+            cp.save(dict(base_state, stage="iter1", row=row, variant=None))
+            _maybe_stop("iter1")
         paths, conf, trace = negotiate(neg, paths0, set(failed0), "A" if variant == "A" else "C",
-                                       clk, calls, t0 - wall1, wall1)
+                                       clk, calls, t0 - wall1, wall1, ck=ck,
+                                       resume=vs["state"] if vs is not None else None)
         final, n_commit = commit(neg, paths, conf, clk, calls)
         t = time.perf_counter()
         sc_out = score(sc, final, std)
@@ -420,6 +523,8 @@ def run_map(name, sc, budget, std, variants=("C", "A"), do_baseline=True):
         row[variant] = {"wall_sec": round(wall, 2), "routing_wall_sum": round(routing_wall, 2),
                         "clock": {k: round(v, 2) for k, v in clk.items()},
                         "iterations": trace[-1]["it"], "converged": not conf, "trace": trace,
+                        "cap_hit": (bool(conf) and (trace[-1]["it"] >= neg.max_it or _expanded(calls) >= neg.exp_cap)
+                                    and trace[-1]["it"] < MAX_IT) or None,
                         "commit_rerouted": n_commit, "calls": len(calls),
                         "calls_per_pipe_median": statistics.median(per_pipe.values()),
                         "calls_per_pipe_max": max(per_pipe.values()),
@@ -433,7 +538,10 @@ def run_map(name, sc, budget, std, variants=("C", "A"), do_baseline=True):
               f"필수 {sc_out['required_passed']}/{sc_out['required_pipes']} · J {sc_out['J_total']:.0f} · "
               f"라우팅 벽시계 {routing_wall:.0f} s · 전체 {wall:.0f} s", flush=True)
         prune_item_cache(neg, {})
+        saved = None
+        cp.save(dict(base_state, stage=f"{variant} done", row=row, variant=None))
     row["rss_gb_max"] = round(rss_gb(), 2)
+    cp.done()
     return row
 
 
@@ -498,6 +606,8 @@ def main(argv=None) -> int:
     ap.add_argument("--budget", type=int, default=EXPAND_BUDGET)
     ap.add_argument("--out", required=True)
     ap.add_argument("--resume", action="store_true")
+    ap.add_argument("--max-it", type=int, default=MAX_IT, help="협상 반복 상한 (§40.5)")
+    ap.add_argument("--exp-cap", type=float, default=float("inf"), help="협상 전체 확장 누계 상한, 반복 경계에서 (§40.5)")
     standard_guard.add_argument(ap)
     a = ap.parse_args(argv)
     std_info = standard_guard.resolve(a.allow_public_standard, what="협상 호출 예산 측정")
@@ -523,7 +633,9 @@ def main(argv=None) -> int:
         clear_cache()
         gc.collect()
         sc = make()
-        row = run_map(name, sc, a.budget, std, variants, not a.no_baseline)
+        ck = (pathlib.Path(a.out + ".ckpt") / (name.replace("/", "__") + ".pkl")) if a.resume else None
+        row = run_map(name, sc, a.budget, std, variants, not a.no_baseline, ckpt_path=ck,
+                      caps={"max_it": a.max_it, "exp_cap": a.exp_cap})
         row["support_standard"] = std_info.get("sha256")
         if ref:
             row["scenario_ref"] = {**ref, "sha256_match": True}
@@ -536,6 +648,7 @@ def main(argv=None) -> int:
                                                           "컴파일 A* (skeleton _search_generic 패치) → h = 1.1·max(D41 h, rg), ") + 
                                                          "rg = 배관별 1회 (빈 그래프 + 단자 예약) 반복 내내 재사용",
                                                "machine": machine_info(), "set": a.set, "variants": list(variants),
+                                               "caps": {"max_it": a.max_it, "exp_cap": a.exp_cap},
                                                "params": {"max_it": MAX_IT, "pres0": PRES0, "pres_mul": PRES_MUL,
                                                           "hist_add": HIST_ADD},
                                                "rows": rows}, ensure_ascii=False, indent=1, default=float),
