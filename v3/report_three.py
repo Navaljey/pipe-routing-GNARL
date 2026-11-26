@@ -130,7 +130,10 @@ def main(argv=None) -> int:
     bp = od / "baseline_output.json"
     if a.baseline_only:                     # 메모리 (셸 6 GB) — 기준선은 따로 프로세스에서 먼저
         t = time.perf_counter()
-        o1 = run(sc, solo_ref=False)
+        import functools
+        from pipe_routing.multi import sequential_ripup_planner
+        # classify=False — D74 진단 재라우팅 (× 4 예산) 이 셸 6 GB 를 넘는다. 경로·통과는 같다 (D110 ②: 분류는 예산 밖)
+        o1 = run(sc, solo_ref=False, planner=functools.partial(sequential_ripup_planner, classify=False))
         print(f"① 기준선 {time.perf_counter() - t:.0f} s · 필수 {o1['global']['required_passed']}/"
               f"{o1['global']['required_pipes']}", flush=True)
         bp.write_text(json.dumps(o1, ensure_ascii=False, default=float), encoding="utf-8")
