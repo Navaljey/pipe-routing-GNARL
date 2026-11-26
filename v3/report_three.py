@@ -114,6 +114,7 @@ def main(argv=None) -> int:
     ap.add_argument("--ckpt-dir", required=True)
     ap.add_argument("--cap-it", type=int, required=True)
     ap.add_argument("-o", "--out", required=True)
+    ap.add_argument("--baseline-only", action="store_true", help="기준선 첫 해만 돌려 저장 (메모리 때문에 따로)")
     standard_guard.add_argument(ap)
     a = ap.parse_args(argv)
     std_info = standard_guard.resolve(a.allow_public_standard, what="세 해 3D 리포트")
@@ -126,6 +127,14 @@ def main(argv=None) -> int:
     od.mkdir(parents=True, exist_ok=True)
     make = next(m for n, m, _ in mn.scenarios(a) if n == a.name)
     sc = make()
+    bp = od / "baseline_output.json"
+    if a.baseline_only:                     # 메모리 (셸 6 GB) — 기준선은 따로 프로세스에서 먼저
+        t = time.perf_counter()
+        o1 = run(sc, solo_ref=False)
+        print(f"① 기준선 {time.perf_counter() - t:.0f} s · 필수 {o1['global']['required_passed']}/"
+              f"{o1['global']['required_pipes']}", flush=True)
+        bp.write_text(json.dumps(o1, ensure_ascii=False, default=float), encoding="utf-8")
+        return 0
 
     # ③ 상한 없음
     rows = json.loads(pathlib.Path(a.cap_out).read_text(encoding="utf-8"))["rows"]
@@ -145,15 +154,10 @@ def main(argv=None) -> int:
     print(f"② 필수 {o2['global']['required_passed']}/{o2['global']['required_pipes']} · "
           f"③ 필수 {o3['global']['required_passed']}/{o3['global']['required_pipes']}", flush=True)
 
-    # ① 기준선 첫 해
-    bp = od / "baseline_output.json"
-    if bp.exists():
-        o1 = json.loads(bp.read_text(encoding="utf-8"))
-    else:
-        t = time.perf_counter()
-        o1 = run(sc, solo_ref=False)
-        print(f"① 기준선 {time.perf_counter() - t:.0f} s", flush=True)
-        bp.write_text(json.dumps(o1, ensure_ascii=False, default=float), encoding="utf-8")
+    # ① 기준선 첫 해 (--baseline-only 로 먼저 만든 것)
+    if not bp.exists():
+        raise SystemExit("기준선 출력이 없다 — 먼저 --baseline-only 로 돌린다")
+    o1 = json.loads(bp.read_text(encoding="utf-8"))
     if o1["global"]["support_standard"]["sha256"] != std_info["sha256"]:
         raise SystemExit("기준선 출력 서포트 표 해시 불일치 — 중단")
 
