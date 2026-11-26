@@ -269,6 +269,11 @@ def prune_item_cache(neg, paths):
     return n
 
 
+# D97 결정적 예산 (§40.5 규칙 · §40.7 측정 · 2026-11-26 소유자 승인) — 검증 맵 40263008~12 에서 정했다 (E1 미사용).
+# 판정 시작 뒤 바꾸지 않는다 (§40.4 ①). 반복 경계에서만 본다 → 결정적.
+EXP_CAP_DEFAULT = 180_481_864
+
+
 def _expanded(calls) -> int:
     return int(sum(c.get("expanded", 0) for c in calls))
 
@@ -608,7 +613,8 @@ def main(argv=None) -> int:
     ap.add_argument("--out", required=True)
     ap.add_argument("--resume", action="store_true")
     ap.add_argument("--max-it", type=int, default=MAX_IT, help="협상 반복 상한 (§40.5)")
-    ap.add_argument("--exp-cap", type=float, default=float("inf"), help="협상 전체 확장 누계 상한, 반복 경계에서 (§40.5)")
+    ap.add_argument("--exp-cap", type=float, default=EXP_CAP_DEFAULT,
+                    help="협상 전체 확장 누계 상한, 반복 경계에서 (§40.5·§40.7, 기본 = 소유자 승인값 — inf 면 상한 없음)")
     standard_guard.add_argument(ap)
     a = ap.parse_args(argv)
     std_info = standard_guard.resolve(a.allow_public_standard, what="협상 호출 예산 측정")
